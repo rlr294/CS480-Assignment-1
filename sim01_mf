@@ -3,17 +3,17 @@ DEBUG = -g
 CFLAGS = -Wall -c $(DEBUG)
 LFLAGS = -Wall $(DEBUG)
 
-sim01 : sim01.o structures.o parser.o
-	$(CC) $(LFLAGS) sim01.o structures.o parser.o -o sim01
+sim01 : Sim01.o Structures.o Parser.o
+	$(CC) $(LFLAGS) Sim01.o Structures.o Parser.o -o sim01
 
-sim01.o : sim01.c sim01.h structures.h parser.h
-	$(CC) $(CFLAGS) sim01.c
+sim01.o : Sim01.c Sim01.h Structures.h Parser.h
+	$(CC) $(CFLAGS) Sim01.c
 
-structures.o : structures.c structures.h
-	$(CC) $(CFLAGS) structures.c
+structures.o : Structures.c Structures.h
+	$(CC) $(CFLAGS) Structures.c
 
-parser.o : parser.c parser.h
-	$(CC) $(CFLAGS) parser.c
+parser.o : Parser.c Parser.h
+	$(CC) $(CFLAGS) Parser.c
 
 clean:
-	\rm *.o fileaccessprog
+	\rm *.o Sim01

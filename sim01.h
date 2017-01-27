@@ -12,3 +12,9 @@
 *
 * @note None
 */
+#ifndef SIM01_H
+#define SIM01_H
+
+typedef enum {FALSE, TRUE} Boolean;
+
+#endif

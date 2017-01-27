@@ -4,7 +4,7 @@
 * @brief Driver program for running the simulator
 *
 * @details Uses parser and structures methods to read and store
-* configuration data and meta data 
+* configuration data and meta data
 *
 * @version 1.00
 * C.S. Student (26 January 2017)
@@ -12,3 +12,12 @@
 *
 * @note Requires structures.h, structures.c, parser.h, parser.c
 */
+#include <stdio.h>
+#include "Sim01.h"
+#include "Structures.h"
+#include "Parser.h"
+
+int main(int argc, char const *argv[])
+{
+    return 0;
+}
