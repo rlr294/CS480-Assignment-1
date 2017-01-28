@@ -16,4 +16,11 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stdio.h>
+#include "Structures.h"
+
+int ReadConfig(char* configFileName, ConfigInfo *configData);
+
+int ReadMetaData(char* metaDataFileName, MetaDataNode *head);
+
 #endif

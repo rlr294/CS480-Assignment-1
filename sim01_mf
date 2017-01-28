@@ -16,4 +16,4 @@ parser.o : Parser.c Parser.h
 	$(CC) $(CFLAGS) Parser.c
 
 clean:
-	\rm *.o Sim01
+	\rm *.o Sim01 *.stackdump *.exe

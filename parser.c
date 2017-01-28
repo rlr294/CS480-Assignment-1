@@ -11,5 +11,129 @@
 *
 * @note Requires parser.h
 */
-#include <stdio.h>
+#include <string.h>
 #include "Parser.h"
+
+static int convertSchedulingCode(char* codeString)
+{
+    if(strcmp(codeString, "NONE") == 0)
+    {
+        return 0;
+    }
+    else if(strcmp(codeString, "FCFS-N") == 0)
+    {
+        return 1;
+    }
+    else if(strcmp(codeString, "SJF-N") == 0)
+    {
+        return 2;
+    }
+    else if(strcmp(codeString, "SRTF-P") == 0 )
+    {
+        return 3;
+    }
+    else if(strcmp(codeString, "FCFS-P") == 0)
+    {
+        return 4;
+    }
+    else if(strcmp(codeString, "RR-P") == 0)
+    {
+        return 5;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+static int convertLogTo(char* logString)
+{
+    if(strcmp(logString, "Monitor") == 0)
+    {
+        return 0;
+    }
+    else if(strcmp(logString, "File") == 0)
+    {
+        return 1;
+    }
+    else if(strcmp(logString, "Both") == 0)
+    {
+        return 2;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+int ReadConfig(char* configFileName, ConfigInfo *configData)
+{
+    char schedulingCode[6];
+    char logTo[7];
+    FILE *configFile;
+    char line[256];
+    configFile = fopen(configFileName, "r");
+
+    while(fgets(line, sizeof(line), configFile))
+    {
+        sscanf(line, "Version/Phase: %d", &configData->versionPhase);
+        sscanf(line, "File Path: %s", configData->filePath);
+        sscanf(line, "CPU Scheduling Code: %s", schedulingCode);
+        sscanf(line, "Quantum Time (cycles): %d", &configData->quantumTime);
+        sscanf(line, "Memory Available (KB): %d",
+            &configData->memoryAvailable);
+        sscanf(line, "Processor Cycle Time (msec): %d",
+            &configData->processorCycleTime);
+        sscanf(line, "I/O Cycle Time (msec): %d", &configData->ioCycleTime);
+        sscanf(line, "Log To: %s", logTo);
+        sscanf(line, "Log File Path: %s", configData->logFilePath);
+    }
+
+    configData->cpuSchedulingCode = convertSchedulingCode(schedulingCode);
+    if(configData->cpuSchedulingCode < 0)
+    {
+        return -1;
+    }
+
+    configData->logTo = convertLogTo(logTo);
+    if(configData->logTo < 0)
+    {
+        return -1;
+    }
+
+    fclose(configFile);
+    return 0;
+}
+
+int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
+{
+    /*char line[256];
+    char instruction[15];
+    char* openParenthesis;
+    char* closeParenthesis;
+    FILE *metaDataFile;
+    MetaDataNode *currentNode = head;
+
+    metaDataFile = fopen(metaDataFileName, "r");
+
+    while(fgets(line, sizeof(line), metaDataFile))
+    {
+        instruction = strtok(line, "; ");
+        while(instruction != NULL)
+        {
+            currentNode->command = line[0];
+
+            openParenthesis = memchr(line, "(",strlen(line));
+            closeParenthesis = memchr(line, ")",strlen(line));
+
+            strncpy(currentNode->opperation, line[2], closeParenthesis - openParenthesis);
+            currentNode->cycleTime = ;
+
+            currentNode = currentNode->nextNode;
+            instruction = strtok(line, "; ")
+        }
+    }
+
+    fclose(metaDataFile);*/
+    return 0;
+}

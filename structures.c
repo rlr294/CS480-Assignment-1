@@ -12,11 +12,42 @@
 * @note Requires structures.h
 */
 #include <stdio.h>
+#include <string.h>
 #include "Structures.h"
 
-void AddToList(MetaDataNode *head, MetaDataNode *newNode)
+static char* convertSchedulingCode(enum cpuSchedulingCode code)
+{
+    static char * strings[6] = {"FCFS-N", "FCFS-N", "SJF-N", "SRTF-P",
+        "FCFS-P", "RR-P"};
+
+    return strings[code];
+}
+
+static char* convertLogTo(enum logTo log)
+{
+    static char * strings[3] = {"Monitor", "File", "Both"};
+
+    return strings[log];
+}
+
+MetaDataNode *makeNode(char newCommand, char newOpperation[10], int newCycleTime)
+{
+    MetaDataNode *newNode;
+
+    newNode->command = newCommand;
+    strcpy(newNode->opperation, newOpperation);
+    newNode->cycleTime = newCycleTime;
+    newNode->nextNode = NULL;
+
+    return newNode;
+}
+
+void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10], int newCycleTime)
 {
     MetaDataNode *currentNode = head;
+
+    MetaDataNode *newNode = makeNode(newCommand, newOpperation, newCycleTime);
+
     while(currentNode->nextNode != NULL)
     {
         currentNode = currentNode->nextNode;
@@ -24,17 +55,31 @@ void AddToList(MetaDataNode *head, MetaDataNode *newNode)
     currentNode->nextNode = newNode;
 }
 
-void printList(MetaDataNode *head)
+void PrintList(MetaDataNode *head)
 {
     MetaDataNode *currentNode = head;
+    printf("========META DATA========\n\n");
     while(currentNode != NULL)
     {
-        printf();
+        printf("Command: %c\n", currentNode->command);
+        printf("Opperation: %s\n", currentNode->opperation);
+        printf("Cycle Time: %i\n\n", currentNode->cycleTime);
         currentNode = currentNode->nextNode;
     }
 }
 
-void printConfig(ConfigInfo *configuration)
+void PrintConfig(ConfigInfo *configData)
 {
-
+    printf("Start Simulator Configuration File\n");
+    printf("Version/Phase: %d\n", configData->versionPhase);
+    printf("File Path: %s\n", configData->filePath);
+    printf("CPU Scheduling Code: %s\n",
+        convertSchedulingCode(configData->cpuSchedulingCode));
+    printf("Quantum Time (cycles): %d\n", configData->quantumTime);
+    printf("Memory Available (KB): %d\n", configData->memoryAvailable);
+    printf("Processor Cycle Time (msec): %d\n", configData->processorCycleTime);
+    printf("I/O Cycle Time (msec): %d\n", configData->ioCycleTime);
+    printf("Log to: %s\n", convertLogTo(configData->logTo));
+    printf("Log File Path: %s\n", configData->logFilePath);
+    printf("End Simulator Configuration File.\n\n");
 }

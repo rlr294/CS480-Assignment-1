@@ -9,7 +9,7 @@
 * @version 1.00
 * C.S. Student (26 January 2017)
 * Initial development of the structures
-*
+*'/'
 * @note None
 */
 #ifndef STRUCTURES_H
@@ -19,12 +19,12 @@ typedef struct ConfigInfo
 {
     int versionPhase;
     char filePath[40];
-    enum cpuSchedulingCode {NONE, FCFSN, SJFN, SRTFP, FCFSP, RRP} schedule;
+    enum cpuSchedulingCode {NONE, FCFSN, SJFN, SRTFP, FCFSP, RRP} cpuSchedulingCode;
     int quantumTime;
     int memoryAvailable;
     int processorCycleTime;
     int ioCycleTime;
-    enum logTo {Monitor, File, Both} log;
+    enum logTo {Monitor, File, Both} logTo;
     char logFilePath[40];
 } ConfigInfo;
 
@@ -36,10 +36,12 @@ typedef struct MetaDataNode
     struct MetaDataNode *nextNode;
 } MetaDataNode;
 
-void AddToList(MetaDataNode *head, MetaDataNode *newNode);
+void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10], int newCycleTime);
 
-void printList(MetaDataNode *head);
+void PrintList(MetaDataNode *head);
 
-void printConfig(ConfigInfo *configuration);
+void PrintConfig(ConfigInfo *configData);
+
+
 
 #endif
