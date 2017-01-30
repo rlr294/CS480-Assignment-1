@@ -12,6 +12,7 @@
 * @note Requires parser.h
 */
 #include <string.h>
+#include <stdlib.h>
 #include "Parser.h"
 
 static int convertSchedulingCode(char* codeString)
@@ -79,12 +80,18 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
         sscanf(line, "Version/Phase: %d", &configData->versionPhase);
         sscanf(line, "File Path: %s", configData->filePath);
         sscanf(line, "CPU Scheduling Code: %s", schedulingCode);
-        sscanf(line, "Quantum Time (cycles): %d", &configData->quantumTime);
+        sscanf(line, "Quantum Time (cycles): %d",
+            &configData->quantumTime);
+
         sscanf(line, "Memory Available (KB): %d",
             &configData->memoryAvailable);
+
         sscanf(line, "Processor Cycle Time (msec): %d",
             &configData->processorCycleTime);
-        sscanf(line, "I/O Cycle Time (msec): %d", &configData->ioCycleTime);
+
+        sscanf(line, "I/O Cycle Time (msec): %d",
+            &configData->ioCycleTime);
+
         sscanf(line, "Log To: %s", logTo);
         sscanf(line, "Log File Path: %s", configData->logFilePath);
     }
@@ -107,33 +114,63 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
 
 int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
 {
-    /*char line[256];
-    char instruction[15];
+    char line[256];
+    char* instruction;
     char* openParenthesis;
     char* closeParenthesis;
+    char command;
+    char* opperation;
+    char* stringToLongPtr;
+    int cycleTime;
     FILE *metaDataFile;
-    MetaDataNode *currentNode = head;
 
     metaDataFile = fopen(metaDataFileName, "r");
 
+    fgets(line, sizeof(line), metaDataFile); //handles the Start Program line of the file
     while(fgets(line, sizeof(line), metaDataFile))
     {
-        instruction = strtok(line, "; ");
-        while(instruction != NULL)
+        if(strcmp(line, "End Program Meta-Data Code.\n") != 0)
         {
-            currentNode->command = line[0];
+            instruction = strtok(line, ";");
+            while(instruction != NULL && instruction[0] != '\n')
+            {
+                printf("%s\n", instruction);
 
-            openParenthesis = memchr(line, "(",strlen(line));
-            closeParenthesis = memchr(line, ")",strlen(line));
+                command = instruction[0];
 
-            strncpy(currentNode->opperation, line[2], closeParenthesis - openParenthesis);
-            currentNode->cycleTime = ;
+                openParenthesis = strchr(instruction, '(');
+                closeParenthesis = strchr(instruction, ')');
 
-            currentNode = currentNode->nextNode;
-            instruction = strtok(line, "; ")
+                opperation = malloc(sizeof(closeParenthesis - openParenthesis - 1));
+                strncpy(opperation, openParenthesis + 1, closeParenthesis - openParenthesis - 1);
+
+                cycleTime = strtol(closeParenthesis + 1, &stringToLongPtr, 10);
+
+                if(!head->command)
+                {
+                    head->command = command;
+                    strcpy(head->opperation, opperation);
+                }
+                else
+                {
+                    AddToList(head, command, opperation, cycleTime);
+                }
+
+                free(opperation);
+
+                instruction = strtok(NULL, ";.");
+                if(instruction != NULL)
+                {
+                    if(instruction[0] == ' ')
+                    {
+                        instruction++;
+                    }
+                }
+            }
         }
     }
 
-    fclose(metaDataFile);*/
+    fclose(metaDataFile);
+
     return 0;
 }

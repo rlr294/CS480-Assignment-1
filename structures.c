@@ -13,6 +13,7 @@
 */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "Structures.h"
 
 static char* convertSchedulingCode(enum cpuSchedulingCode code)
@@ -30,10 +31,8 @@ static char* convertLogTo(enum logTo log)
     return strings[log];
 }
 
-MetaDataNode *makeNode(char newCommand, char newOpperation[10], int newCycleTime)
+static MetaDataNode *makeNode(MetaDataNode *newNode, char newCommand, char newOpperation[10], int newCycleTime)
 {
-    MetaDataNode *newNode;
-
     newNode->command = newCommand;
     strcpy(newNode->opperation, newOpperation);
     newNode->cycleTime = newCycleTime;
@@ -46,7 +45,8 @@ void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10], int 
 {
     MetaDataNode *currentNode = head;
 
-    MetaDataNode *newNode = makeNode(newCommand, newOpperation, newCycleTime);
+    MetaDataNode *newNode = malloc(sizeof(MetaDataNode));
+    newNode = makeNode(newNode, newCommand, newOpperation, newCycleTime);
 
     while(currentNode->nextNode != NULL)
     {

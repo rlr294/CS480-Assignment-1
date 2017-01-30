@@ -23,6 +23,7 @@ int main(int argc, char const *argv[])
     char configFileName[40];
     ConfigInfo configData = {};
     int errorCheck = 0;
+    MetaDataNode head = {};
 
     if(argc != 2)
     {
@@ -40,8 +41,12 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
+
     PrintConfig(&configData);
 
+    ReadMetaData(configData.filePath , &head);
+
+    PrintList(&head);
 
     return 0;
 }
