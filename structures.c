@@ -37,7 +37,6 @@ static MetaDataNode *makeNode(MetaDataNode *newNode, char newCommand, char newOp
     strcpy(newNode->opperation, newOpperation);
     newNode->cycleTime = newCycleTime;
     newNode->nextNode = NULL;
-
     return newNode;
 }
 

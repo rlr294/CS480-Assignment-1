@@ -127,6 +127,7 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
     metaDataFile = fopen(metaDataFileName, "r");
 
     fgets(line, sizeof(line), metaDataFile); //handles the Start Program line of the file
+    
     while(fgets(line, sizeof(line), metaDataFile))
     {
         if(strcmp(line, "End Program Meta-Data Code.\n") != 0)
@@ -134,8 +135,6 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
             instruction = strtok(line, ";");
             while(instruction != NULL && instruction[0] != '\n')
             {
-                printf("%s\n", instruction);
-
                 command = instruction[0];
 
                 openParenthesis = strchr(instruction, '(');
@@ -143,6 +142,7 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
 
                 opperation = malloc(sizeof(closeParenthesis - openParenthesis - 1));
                 strncpy(opperation, openParenthesis + 1, closeParenthesis - openParenthesis - 1);
+                opperation[closeParenthesis - openParenthesis - 1] = '\0';
 
                 cycleTime = strtol(closeParenthesis + 1, &stringToLongPtr, 10);
 
@@ -150,6 +150,7 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
                 {
                     head->command = command;
                     strcpy(head->opperation, opperation);
+                    head->cycleTime = cycleTime;
                 }
                 else
                 {
