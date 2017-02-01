@@ -44,7 +44,7 @@
 *
 * @note: None
 */
-static int convertSchedulingCode(char* codeString)
+static int ConvertSchedulingCode(char* codeString)
 {
     if(strcmp(codeString, "NONE") == 0)
     {
@@ -87,7 +87,7 @@ static int convertSchedulingCode(char* codeString)
 *
 * @note: None
 */
-static int convertLogTo(char* logString)
+static int ConvertLogTo(char* logString)
 {
     if(strcmp(logString, "Monitor") == 0)
     {
@@ -105,6 +105,61 @@ static int convertLogTo(char* logString)
     {
         return -1;
     }
+}
+
+/*
+* @brief Subroutine of Read Meta data that takes an instruction and stores it
+*        in a node
+*
+* @details If this is the first instruction being read the data is stored in
+*          head, otherwise it is stored in a new node that is put at the
+*          end of the linked list that head points to
+*
+* @param[in] instruction
+*            holds the string containing the meta data instruction
+*
+* @param[in] head
+*            pointer to the head of the linked list where the meta data
+*            will be stored
+*
+* @return None
+*
+* @note: None
+*/
+static void HandleInstruction(char* instruction, MetaDataNode *head)
+{
+    char* openParenthesis;
+    char* closeParenthesis;
+    int range;
+    char command;
+    char* opperation;
+    char* stringToLongPtr;
+    int cycleTime;
+
+    command = instruction[0];
+
+    openParenthesis = strchr(instruction, '(');
+    closeParenthesis = strchr(instruction, ')');
+    range = closeParenthesis - openParenthesis - 1;
+
+    opperation = malloc(sizeof(range));
+    strncpy(opperation, openParenthesis + 1, range);
+    opperation[range] = '\0';
+
+    cycleTime = strtol(closeParenthesis + 1, &stringToLongPtr, 10);
+
+    if(!head->command)
+    {
+        head->command = command;
+        strcpy(head->opperation, opperation);
+        head->cycleTime = cycleTime;
+    }
+    else
+    {
+        AddToList(head, command, opperation, cycleTime);
+    }
+
+    free(opperation);
 }
 
 /*
@@ -155,13 +210,13 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
         sscanf(line, "Log File Path: %s", configData->logFilePath);
     }
 
-    configData->cpuSchedulingCode = convertSchedulingCode(schedulingCode);
+    configData->cpuSchedulingCode = ConvertSchedulingCode(schedulingCode);
     if(configData->cpuSchedulingCode < 0)
     {
         return -1;
     }
 
-    configData->logTo = convertLogTo(logTo);
+    configData->logTo = ConvertLogTo(logTo);
     if(configData->logTo < 0)
     {
         return -2;
@@ -190,12 +245,6 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
 {
     char line[256];
     char* instruction;
-    char* openParenthesis;
-    char* closeParenthesis;
-    char command;
-    char* opperation;
-    char* stringToLongPtr;
-    int cycleTime;
     FILE *metaDataFile;
 
     metaDataFile = fopen(metaDataFileName, "r");
@@ -214,36 +263,12 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
             instruction = strtok(line, ";");
             while(instruction != NULL && instruction[0] != '\n')
             {
-                command = instruction[0];
-
-                openParenthesis = strchr(instruction, '(');
-                closeParenthesis = strchr(instruction, ')');
-                int range = closeParenthesis - openParenthesis - 1;
-
-                opperation = malloc(sizeof(range));
-                strncpy(opperation, openParenthesis + 1, range);
-                opperation[closeParenthesis - openParenthesis - 1] = '\0';
-
-                cycleTime = strtol(closeParenthesis + 1, &stringToLongPtr, 10);
-
-                if(!head->command)
-                {
-                    head->command = command;
-                    strcpy(head->opperation, opperation);
-                    head->cycleTime = cycleTime;
-                }
-                else
-                {
-                    AddToList(head, command, opperation, cycleTime);
-                }
-
-                free(opperation);
+                HandleInstruction(instruction, head);
 
                 instruction = strtok(NULL, ";.");
                 if(instruction != NULL && instruction[0] == ' ')
                 {
-
-                    instruction++;
+                    instruction++;  //cuts off the leading spaces
                 }
             }
         }

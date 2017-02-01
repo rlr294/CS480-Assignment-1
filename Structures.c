@@ -84,17 +84,17 @@ static char* convertLogTo(enum logTo log)
 * @param[in] newCycleTime
 *            Holds the cycle time of the new meta data opperation
 *
-* @return newNode after its contents have been altered
+* @return None
 *
 * @note: None
 */
-static MetaDataNode *makeNode(MetaDataNode *newNode, char newCommand, char newOpperation[10], int newCycleTime)
+static void makeNode(MetaDataNode *newNode, char newCommand,
+        char newOpperation[10], int newCycleTime)
 {
     newNode->command = newCommand;
     strcpy(newNode->opperation, newOpperation);
     newNode->cycleTime = newCycleTime;
     newNode->nextNode = NULL;
-    return newNode;
 }
 
 /*
@@ -118,12 +118,13 @@ static MetaDataNode *makeNode(MetaDataNode *newNode, char newCommand, char newOp
 *
 * @note: None
 */
-void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10], int newCycleTime)
+void AddToList(MetaDataNode *head, char newCommand,
+        char newOpperation[10], int newCycleTime)
 {
     MetaDataNode *currentNode = head;
 
     MetaDataNode *newNode = malloc(sizeof(MetaDataNode));
-    newNode = makeNode(newNode, newCommand, newOpperation, newCycleTime);
+    makeNode(newNode, newCommand, newOpperation, newCycleTime);
 
     while(currentNode->nextNode != NULL)
     {
