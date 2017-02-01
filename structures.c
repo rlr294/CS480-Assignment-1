@@ -5,6 +5,10 @@
 *
 * @details Implements all member methods of the structures class
 *
+* @commit fd579a2
+* C.S. Student (31 January 2017)
+* Added documentation for all methods
+*
 * @commit 030ed4b
 * C.S. Student (30 January 2017)
 * Changed makeNode to a static method, started mallocing for newNodes

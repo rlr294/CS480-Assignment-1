@@ -5,6 +5,10 @@
 *
 * @details Implements all member methods of the paser class
 *
+* @commit fd579a2
+* C.S. Student (31 January 2017)
+* Added documentation for all methods, added error codes for file checks
+*
 * @commit 44c0cab
 * C.S. Student (31 January 2017)
 * Added a null terminating character after parsing in opperation
