@@ -33,6 +33,11 @@
 #define LOG_TO_FILE 1
 #define LOG_TO_BOTH 2
 
+#define CPU_SCHEDULING_CODE_ERROR -1
+#define LOG_TO_ERROR -2
+#define CONFIG_FILE_ERROR -3
+#define META_DATA_FILE_ERROR -4
+
 int ReadConfig(char* configFileName, ConfigInfo *configData);
 
 int ReadMetaData(char* metaDataFileName, MetaDataNode *head);
