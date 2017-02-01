@@ -15,6 +15,11 @@
 #ifndef SIM01_H
 #define SIM01_H
 
+#define CPU_SCHEDULING_CODE_ERROR -1
+#define LOG_TO_ERROR -2
+#define CONFIG_FILE_ERROR -3
+#define META_DATA_FILE_ERROR -4
+
 typedef enum {FALSE, TRUE} Boolean;
 
 void errorCheck(int errorNum);

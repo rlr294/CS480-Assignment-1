@@ -30,6 +30,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Parser.h"
+#include "Sim01.h"
 
 // Free Function Implementation ///////////////////////////////////
 
@@ -48,31 +49,31 @@ static int ConvertSchedulingCode(char* codeString)
 {
     if(strcmp(codeString, "NONE") == 0)
     {
-        return 0;
+        return NONE;
     }
     else if(strcmp(codeString, "FCFS-N") == 0)
     {
-        return 1;
+        return FCFS_N;
     }
     else if(strcmp(codeString, "SJF-N") == 0)
     {
-        return 2;
+        return SJF_N;
     }
     else if(strcmp(codeString, "SRTF-P") == 0 )
     {
-        return 3;
+        return SRTF_P;
     }
     else if(strcmp(codeString, "FCFS-P") == 0)
     {
-        return 4;
+        return FCFS_P;
     }
     else if(strcmp(codeString, "RR-P") == 0)
     {
-        return 5;
+        return RR_P;
     }
     else
     {
-        return -1;
+        return CPU_SCHEDULING_CODE_ERROR;
     }
 }
 
@@ -91,19 +92,19 @@ static int ConvertLogTo(char* logString)
 {
     if(strcmp(logString, "Monitor") == 0)
     {
-        return 0;
+        return LOG_TO_MONITOR;
     }
     else if(strcmp(logString, "File") == 0)
     {
-        return 1;
+        return LOG_TO_FILE;
     }
     else if(strcmp(logString, "Both") == 0)
     {
-        return 2;
+        return LOG_TO_BOTH;
     }
     else
     {
-        return -1;
+        return LOG_TO_ERROR;
     }
 }
 
@@ -186,7 +187,7 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
 
     if(configFile == NULL)
     {
-        return -3;
+        return CONFIG_FILE_ERROR;
     }
 
     while(fgets(line, sizeof(line), configFile))
@@ -213,13 +214,13 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
     configData->cpuSchedulingCode = ConvertSchedulingCode(schedulingCode);
     if(configData->cpuSchedulingCode < 0)
     {
-        return -1;
+        return CPU_SCHEDULING_CODE_ERROR;
     }
 
     configData->logTo = ConvertLogTo(logTo);
     if(configData->logTo < 0)
     {
-        return -2;
+        return LOG_TO_ERROR;
     }
 
     fclose(configFile);
@@ -251,7 +252,7 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
 
     if(metaDataFile == NULL)
     {
-        return -4;
+        return META_DATA_FILE_ERROR;
     }
 
     fgets(line, sizeof(line), metaDataFile); //handles the Start Program line of the file

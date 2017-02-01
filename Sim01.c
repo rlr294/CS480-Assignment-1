@@ -84,19 +84,19 @@ void errorCheck(int errorNum)
     {
         return;
     }
-    else if(errorNum == -1)
+    else if(errorNum == CPU_SCHEDULING_CODE_ERROR)
     {
         printf("Invalid value for 'CPU Scheduling Code' in the configuration file\n");
     }
-    else if(errorNum == -2)
+    else if(errorNum == LOG_TO_ERROR)
     {
         printf("Invalid value for 'Log To' in the configuration file\n");
     }
-    else if(errorNum == -3)
+    else if(errorNum == CONFIG_FILE_ERROR)
     {
         printf("Error opening configuration file\n");
     }
-    else if(errorNum == -4)
+    else if(errorNum == META_DATA_FILE_ERROR)
     {
         printf("Error opening meta data file\n");
     }
