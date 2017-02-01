@@ -6,10 +6,13 @@
 * @details Contains methods for reading configuration and
 * meta data files and storing them into structures
 *
+* @commit 795a4a0
+* C.S. Student (27 January 2017)
+* Added declarations for ReadConfig and ReadMetaData
 *
-* @version 1.00
+* @commit 501b0d6
 * C.S. Student (26 January 2017)
-* Initial development of the parser
+* Basic creation of this file
 *
 * @note None
 */
@@ -23,4 +26,4 @@ int ReadConfig(char* configFileName, ConfigInfo *configData);
 
 int ReadMetaData(char* metaDataFileName, MetaDataNode *head);
 
-#endif
+#endif //PARSER_H

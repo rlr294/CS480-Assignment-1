@@ -5,9 +5,21 @@
 *
 * @details Implements all member methods of the paser class
 *
-* @version 1.00
+* @commit 44c0cab
+* C.S. Student (31 January 2017)
+* Added a null terminating character after parsing in opperation
+*
+* @commit 030ed4b
+* C.S. Student (30 January 2017)
+* Development of ReadMetaData
+*
+* @commit 795a4a0
+* C.S. Student (27 January 2017)
+* Initial development of convertSchedulingCode,  convertLogTo, and ReadConfig
+*
+* @commit 501b0d6
 * C.S. Student (26 January 2017)
-* Initial development and testing of parser class
+* Basic creation of this file
 *
 * @note Requires parser.h
 */
@@ -15,6 +27,19 @@
 #include <stdlib.h>
 #include "Parser.h"
 
+// Free Function Implementation ///////////////////////////////////
+
+/*
+* @brief Converts the 'CPU scheduling code' string to an enum representing it
+*
+* @param[in] codeString
+*            holds the string for the 'CPU scheduling code'
+*
+* @return A number used for an enum to represent the config file's
+*        'CPU scheduling code', negative nubers represent error codes
+*
+* @note: None
+*/
 static int convertSchedulingCode(char* codeString)
 {
     if(strcmp(codeString, "NONE") == 0)
@@ -47,6 +72,17 @@ static int convertSchedulingCode(char* codeString)
     }
 }
 
+/*
+* @brief Converts the 'Log To' string to an enum representing it
+*
+* @param[in] codeString
+*            holds the string for the 'Log To'
+*
+* @return A number used for an enum to represent the config file's
+*        'Log To', negative nubers represent error codes
+*
+* @note: None
+*/
 static int convertLogTo(char* logString)
 {
     if(strcmp(logString, "Monitor") == 0)
@@ -67,6 +103,20 @@ static int convertLogTo(char* logString)
     }
 }
 
+/*
+* @brief Reads configuration information from a config file and stores it
+*        in a ConfigInfo struct
+*
+* @param[in] configFileName
+*            holds the string for the configuration file name
+*
+* @param[in] configData
+*            pointer to the struct where the configuration data will be stored
+*
+* @return error codes: 0 represents no error, negative numbers represent errors
+*
+* @note: None
+*/
 int ReadConfig(char* configFileName, ConfigInfo *configData)
 {
     char schedulingCode[6];
@@ -74,6 +124,11 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
     FILE *configFile;
     char line[256];
     configFile = fopen(configFileName, "r");
+
+    if(configFile == NULL)
+    {
+        return -3;
+    }
 
     while(fgets(line, sizeof(line), configFile))
     {
@@ -105,13 +160,28 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
     configData->logTo = convertLogTo(logTo);
     if(configData->logTo < 0)
     {
-        return -1;
+        return -2;
     }
 
     fclose(configFile);
     return 0;
 }
 
+/*
+* @brief Reads meta data information from a meta data file and stores it
+*        in a linked list
+*
+* @param[in] metaDataFileName
+*            holds the string for the meta data name
+*
+* @param[in] head
+*            pointer to the head of the linked list where the meta data
+*            will be stored
+*
+* @return error codes: 0 represents no error, negative numbers represent errors
+*
+* @note: None
+*/
 int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
 {
     char line[256];
@@ -126,8 +196,13 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
 
     metaDataFile = fopen(metaDataFileName, "r");
 
+    if(metaDataFile == NULL)
+    {
+        return -4;
+    }
+
     fgets(line, sizeof(line), metaDataFile); //handles the Start Program line of the file
-    
+
     while(fgets(line, sizeof(line), metaDataFile))
     {
         if(strcmp(line, "End Program Meta-Data Code.\n") != 0)
@@ -139,9 +214,10 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
 
                 openParenthesis = strchr(instruction, '(');
                 closeParenthesis = strchr(instruction, ')');
+                int range = closeParenthesis - openParenthesis - 1;
 
-                opperation = malloc(sizeof(closeParenthesis - openParenthesis - 1));
-                strncpy(opperation, openParenthesis + 1, closeParenthesis - openParenthesis - 1);
+                opperation = malloc(sizeof(range));
+                strncpy(opperation, openParenthesis + 1, range);
                 opperation[closeParenthesis - openParenthesis - 1] = '\0';
 
                 cycleTime = strtol(closeParenthesis + 1, &stringToLongPtr, 10);
@@ -160,12 +236,10 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
                 free(opperation);
 
                 instruction = strtok(NULL, ";.");
-                if(instruction != NULL)
+                if(instruction != NULL && instruction[0] == ' ')
                 {
-                    if(instruction[0] == ' ')
-                    {
-                        instruction++;
-                    }
+
+                    instruction++;
                 }
             }
         }

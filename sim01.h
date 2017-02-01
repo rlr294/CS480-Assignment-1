@@ -6,9 +6,9 @@
 * @details Executes all the commands needed to make the program run
 *
 *
-* @version 1.00
+* @commit 501b0d6
 * C.S. Student (26 January 2017)
-* Initial development of Sim01 program
+* Definition of Boolean
 *
 * @note None
 */
@@ -17,4 +17,6 @@
 
 typedef enum {FALSE, TRUE} Boolean;
 
-#endif
+void errorCheck(int errorNum);
+
+#endif //SIM01_H

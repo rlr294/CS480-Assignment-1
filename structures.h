@@ -6,10 +6,14 @@
 * @details contains the data structures for containing the
 * config data and meta data
 *
-* @version 1.00
+* @version 1.20
+* C.S. Student (27 January 2017)
+* Changed some of the method arguements to agree with Structures.c
+*
+* @commit 501b0d6
 * C.S. Student (26 January 2017)
-* Initial development of the structures
-*'/'
+* Structs developed and functions declared
+*
 * @note None
 */
 #ifndef STRUCTURES_H
@@ -19,7 +23,8 @@ typedef struct ConfigInfo
 {
     int versionPhase;
     char filePath[40];
-    enum cpuSchedulingCode {NONE, FCFSN, SJFN, SRTFP, FCFSP, RRP} cpuSchedulingCode;
+    enum cpuSchedulingCode {NONE, FCFSN, SJFN, SRTFP, FCFSP, RRP}
+        cpuSchedulingCode;
     int quantumTime;
     int memoryAvailable;
     int processorCycleTime;
@@ -36,7 +41,8 @@ typedef struct MetaDataNode
     struct MetaDataNode *nextNode;
 } MetaDataNode;
 
-void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10], int newCycleTime);
+void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10],
+        int newCycleTime);
 
 void PrintList(MetaDataNode *head);
 
@@ -44,4 +50,4 @@ void PrintConfig(ConfigInfo *configData);
 
 
 
-#endif
+#endif //STRUCTURES_H

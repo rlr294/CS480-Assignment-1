@@ -5,7 +5,15 @@
 *
 * @details Implements all member methods of the structures class
 *
-* @version 1.00
+* @commit 030ed4b
+* C.S. Student (30 January 2017)
+* Changed makeNode to a static method, started mallocing for newNodes
+*
+* @commit 795a4a0
+* C.S. Student (27 January 2017)
+* PrintConfig method developed, conversion methods added and developed.
+*
+* @commit 501b0d6
 * C.S. Student (26 January 2017)
 * Initial development and testing of structures class
 *
@@ -16,6 +24,19 @@
 #include <stdlib.h>
 #include "Structures.h"
 
+// Free Function Implementation ///////////////////////////////////
+
+/*
+* @brief Converts the cpuSchedulingCode enum to the strings they represent
+*
+* @param[in] code
+*            an enum handling the 3 values the config's 'CPU Scheduling Code'
+*            can be
+*
+* @return the string that the number stored in code represents
+*
+* @note: None
+*/
 static char* convertSchedulingCode(enum cpuSchedulingCode code)
 {
     static char * strings[6] = {"FCFS-N", "FCFS-N", "SJF-N", "SRTF-P",
@@ -24,6 +45,16 @@ static char* convertSchedulingCode(enum cpuSchedulingCode code)
     return strings[code];
 }
 
+/*
+* @brief Converts the logTo enum to the strings they represent
+*
+* @param[in] log
+*            an enum handling the 3 values the config's 'Log To' can be
+*
+* @return the string that the number stored in log represents
+*
+* @note: None
+*/
 static char* convertLogTo(enum logTo log)
 {
     static char * strings[3] = {"Monitor", "File", "Both"};
@@ -31,6 +62,28 @@ static char* convertLogTo(enum logTo log)
     return strings[log];
 }
 
+/*
+* @brief Inputs data into a meta data node
+*
+* @pre newNode This node should not have been used yet, it's current values
+                should be NULL
+*
+* @param[in] newNode
+*            points to the node for the data to be stored in
+*
+* @param[in] newCommand
+*            Holds the command of the new meta data opperation
+*
+* @param[in] newOpperation[10]
+*            Holds the opperation of the new meta data opperation
+*
+* @param[in] newCycleTime
+*            Holds the cycle time of the new meta data opperation
+*
+* @return newNode after its contents have been altered
+*
+* @note: None
+*/
 static MetaDataNode *makeNode(MetaDataNode *newNode, char newCommand, char newOpperation[10], int newCycleTime)
 {
     newNode->command = newCommand;
@@ -40,6 +93,27 @@ static MetaDataNode *makeNode(MetaDataNode *newNode, char newCommand, char newOp
     return newNode;
 }
 
+/*
+* @brief Creates a new node and adds it to the end of the list
+*
+* @details The values passed to the function are stored within the new node
+*
+* @param[in] head
+*            points to the head of the meta data linked list
+*
+* @param[in] newCommand
+*            Holds the command of the new meta data opperation
+*
+* @param[in] newOpperation[10]
+*            Holds the opperation of the new meta data opperation
+*
+* @param[in] newCycleTime
+*            Holds the cycle time of the new meta data opperation
+*
+* @return None
+*
+* @note: None
+*/
 void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10], int newCycleTime)
 {
     MetaDataNode *currentNode = head;
@@ -54,6 +128,24 @@ void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10], int 
     currentNode->nextNode = newNode;
 }
 
+/*
+* @brief Prints the contents of the meta data file
+*
+* @details Takes in the head of a linked list storing the meta data information
+*          and prints each nodes elements to the command line
+*
+* @pre MetaDataNode *head A pointer to the head of a linked list containing all
+*      meta data information
+*
+* @post The command line will have all meta data printed to it
+*
+* @param[in] head
+*            points to the head of the meta data linked list
+*
+* @return None
+*
+* @note: None
+*/
 void PrintList(MetaDataNode *head)
 {
     MetaDataNode *currentNode = head;
@@ -67,6 +159,24 @@ void PrintList(MetaDataNode *head)
     }
 }
 
+/*
+* @brief Prints the contents of the configuration file
+*
+* @details Takes in a data structure storing the configuration information
+*          and prints each of its elements to the command line
+*
+* @pre ConfigInfo *configData A pointer to a structure containing all
+*      configuration information
+*
+* @post The command line will have all configuration data printed to it
+*
+* @param[in] configData
+*            holds configuration information
+*
+* @return None
+*
+* @note: None
+*/
 void PrintConfig(ConfigInfo *configData)
 {
     printf("Start Simulator Configuration File\n");
