@@ -5,7 +5,6 @@
 *
 * @details Executes all the commands needed to make the program run
 *
-*
 * @commit 501b0d6
 * C.S. Student (26 January 2017)
 * Definition of Boolean

@@ -6,6 +6,10 @@
 * @details Contains methods for reading configuration and
 * meta data files and storing them into structures
 *
+* @commit 12b42c2
+* C.S. Student (3 February 2017)
+* Finished adding all error checking for the parser
+*
 * @commit 795a4a0
 * C.S. Student (27 January 2017)
 * Added declarations for ReadConfig and ReadMetaData

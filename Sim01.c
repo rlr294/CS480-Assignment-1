@@ -6,6 +6,10 @@
 * @details Uses parser and structures methods to read and store
 * configuration data and meta data
 *
+* @commit 12b42c2
+* C.S. Student (3 February 2017)
+* Finished adding all error checking for the parser
+*
 * @commit fd579a2
 * C.S. Student (31 January 2017)
 * Added documentation for all methods, implemented errorCheck

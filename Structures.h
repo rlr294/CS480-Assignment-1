@@ -6,7 +6,7 @@
 * @details contains the data structures for containing the
 * config data and meta data
 *
-* @version 1.20
+* @commit 795a4a0
 * C.S. Student (27 January 2017)
 * Changed some of the method arguements to agree with Structures.c
 *
@@ -47,7 +47,5 @@ void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10],
 void PrintList(MetaDataNode *head);
 
 void PrintConfig(ConfigInfo *configData);
-
-
 
 #endif //STRUCTURES_H
