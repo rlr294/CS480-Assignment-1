@@ -168,7 +168,7 @@ void PrintList(MetaDataNode *head)
     while(currentNode != NULL)
     {
         printf("Command: %c\n", currentNode->command);
-        printf("operation: %s\n", currentNode->operation);
+        printf("Operation: %s\n", currentNode->operation);
         printf("Cycle Time: %i\n\n", currentNode->cycleTime);
         currentNode = currentNode->nextNode;
     }
