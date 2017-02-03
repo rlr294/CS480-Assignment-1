@@ -36,7 +36,7 @@ typedef struct ConfigInfo
 typedef struct MetaDataNode
 {
     char command;
-    char opperation[10];
+    char operation[10];
     int cycleTime;
     struct MetaDataNode *nextNode;
 } MetaDataNode;

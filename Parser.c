@@ -11,7 +11,7 @@
 *
 * @commit 44c0cab
 * C.S. Student (31 January 2017)
-* Added a null terminating character after parsing in opperation
+* Added a null terminating character after parsing in operation
 *
 * @commit 030ed4b
 * C.S. Student (30 January 2017)
@@ -49,7 +49,7 @@ static int ConvertSchedulingCode(char* codeString)
 {
     if(strcmp(codeString, "NONE") == 0)
     {
-        return NONE;
+        return NONE;    
     }
     else if(strcmp(codeString, "FCFS-N") == 0)
     {
@@ -108,6 +108,49 @@ static int ConvertLogTo(char* logString)
     }
 }
 
+void RemoveSpaces(char* source)
+{
+  char* i = source;
+  char* j = source;
+  while(*j != 0)
+  {
+    *i = *j++;
+    if(*i != ' ' && *i != '\n')
+      i++;
+  }
+  *i = 0;
+}
+
+Boolean IsValidCommand(char command)
+{
+    if(command == 'S' || command == 'A' || command == 'P'
+        || command == 'M' || command == 'I' || command == 'O')
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+
+}
+
+Boolean IsValidOperation(char* operation)
+{
+    if(strcmp(operation, "access") == 0|| strcmp(operation, "allocate") == 0
+        || strcmp(operation, "end") == 0 || strcmp(operation, "harddrive") == 0
+        || strcmp(operation, "keyboard") == 0
+        || strcmp(operation, "printer") == 0||strcmp(operation, "monitor") == 0
+        || strcmp(operation, "run") == 0 || strcmp(operation, "start") == 0)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
 /*
 * @brief Subroutine of Read Meta data that takes an instruction and stores it
 *        in a node
@@ -123,44 +166,66 @@ static int ConvertLogTo(char* logString)
 *            pointer to the head of the linked list where the meta data
 *            will be stored
 *
-* @return None
+* @return error codes: 0 represents no error, negative numbers represent errors
 *
 * @note: None
 */
-static void HandleInstruction(char* instruction, MetaDataNode *head)
+static int HandleInstruction(char* instruction, MetaDataNode *head)
 {
     char* openParenthesis;
     char* closeParenthesis;
     int range;
     char command;
-    char* opperation;
+    char* operation;
     char* stringToLongPtr;
     int cycleTime;
 
     command = instruction[0];
+    if(!IsValidCommand(command) || instruction[1] != '(')
+    {
+        return META_DATA_FORMAT_ERROR;
+    }
 
+    //gets the location of the parenthesis and how many characters are
+    //between them
     openParenthesis = strchr(instruction, '(');
     closeParenthesis = strchr(instruction, ')');
+    if(openParenthesis == NULL || closeParenthesis == NULL)
+    {
+        return META_DATA_FORMAT_ERROR;
+    }
     range = closeParenthesis - openParenthesis - 1;
 
-    opperation = malloc(sizeof(range));
-    strncpy(opperation, openParenthesis + 1, range);
-    opperation[range] = '\0';
+    //stores the string between the parenthesis into operation
+    operation = malloc(sizeof(range));
+    strncpy(operation, openParenthesis + 1, range);
+    operation[range] = '\0';
+    if(!IsValidOperation(operation))
+    {
+        return META_DATA_FORMAT_ERROR;
+    }
 
     cycleTime = strtol(closeParenthesis + 1, &stringToLongPtr, 10);
+    if(stringToLongPtr == closeParenthesis + 1 || stringToLongPtr[0] != '\0')
+    {
+        return META_DATA_FORMAT_ERROR;
+    }
 
+    //if head hasn't been used yet store the data in head,
+    //otherwise use AddToList to create a new node to hold the data
     if(!head->command)
     {
         head->command = command;
-        strcpy(head->opperation, opperation);
+        strcpy(head->operation, operation);
         head->cycleTime = cycleTime;
     }
     else
     {
-        AddToList(head, command, opperation, cycleTime);
+        AddToList(head, command, operation, cycleTime);
     }
 
-    free(opperation);
+    free(operation);
+    return 0;
 }
 
 /*
@@ -192,23 +257,24 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
 
     while(fgets(line, sizeof(line), configFile))
     {
-        sscanf(line, "Version/Phase: %d", &configData->versionPhase);
-        sscanf(line, "File Path: %s", configData->filePath);
-        sscanf(line, "CPU Scheduling Code: %s", schedulingCode);
-        sscanf(line, "Quantum Time (cycles): %d",
+        RemoveSpaces(line);
+        sscanf(line, "Version/Phase:%d", &configData->versionPhase);
+        sscanf(line, "FilePath:%s", configData->filePath);
+        sscanf(line, "CPUSchedulingCode:%s", schedulingCode);
+        sscanf(line, "QuantumTime(cycles):%d",
             &configData->quantumTime);
 
-        sscanf(line, "Memory Available (KB): %d",
+        sscanf(line, "MemoryAvailable(KB):%d",
             &configData->memoryAvailable);
 
-        sscanf(line, "Processor Cycle Time (msec): %d",
+        sscanf(line, "ProcessorCycleTime(msec):%d",
             &configData->processorCycleTime);
 
-        sscanf(line, "I/O Cycle Time (msec): %d",
+        sscanf(line, "I/OCycleTime(msec):%d",
             &configData->ioCycleTime);
 
-        sscanf(line, "Log To: %s", logTo);
-        sscanf(line, "Log File Path: %s", configData->logFilePath);
+        sscanf(line, "LogTo:%s", logTo);
+        sscanf(line, "LogFilePath:%s", configData->logFilePath);
     }
 
     configData->cpuSchedulingCode = ConvertSchedulingCode(schedulingCode);
@@ -247,6 +313,7 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
     char line[256];
     char* instruction;
     FILE *metaDataFile;
+    int errorNum = 0;
 
     metaDataFile = fopen(metaDataFileName, "r");
 
@@ -255,22 +322,24 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
         return META_DATA_FILE_ERROR;
     }
 
-    fgets(line, sizeof(line), metaDataFile); //handles the Start Program line of the file
+    //fgets(line, sizeof(line), metaDataFile); //handles the Start Program line of the file
 
     while(fgets(line, sizeof(line), metaDataFile))
     {
-        if(strcmp(line, "End Program Meta-Data Code.\n") != 0)
+        RemoveSpaces(line);
+        if(strcmp(line, "EndProgramMeta-DataCode.") != 0
+            && strcmp(line, "StartProgramMeta-DataCode:") != 0)
         {
             instruction = strtok(line, ";");
             while(instruction != NULL && instruction[0] != '\n')
             {
-                HandleInstruction(instruction, head);
+                errorNum = HandleInstruction(instruction, head);
+                if(errorNum < 0)
+                {
+                    return errorNum;
+                }
 
                 instruction = strtok(NULL, ";.");
-                if(instruction != NULL && instruction[0] == ' ')
-                {
-                    instruction++;  //cuts off the leading spaces
-                }
             }
         }
     }

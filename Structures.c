@@ -76,23 +76,23 @@ static char* convertLogTo(enum logTo log)
 *            points to the node for the data to be stored in
 *
 * @param[in] newCommand
-*            Holds the command of the new meta data opperation
+*            Holds the command of the new meta data operation
 *
-* @param[in] newOpperation[10]
-*            Holds the opperation of the new meta data opperation
+* @param[in] newOperation[10]
+*            Holds the operation of the new meta data operation
 *
 * @param[in] newCycleTime
-*            Holds the cycle time of the new meta data opperation
+*            Holds the cycle time of the new meta data operation
 *
 * @return None
 *
 * @note: None
 */
 static void makeNode(MetaDataNode *newNode, char newCommand,
-        char newOpperation[10], int newCycleTime)
+        char newOperation[10], int newCycleTime)
 {
     newNode->command = newCommand;
-    strcpy(newNode->opperation, newOpperation);
+    strcpy(newNode->operation, newOperation);
     newNode->cycleTime = newCycleTime;
     newNode->nextNode = NULL;
 }
@@ -106,25 +106,25 @@ static void makeNode(MetaDataNode *newNode, char newCommand,
 *            points to the head of the meta data linked list
 *
 * @param[in] newCommand
-*            Holds the command of the new meta data opperation
+*            Holds the command of the new meta data operation
 *
-* @param[in] newOpperation[10]
-*            Holds the opperation of the new meta data opperation
+* @param[in] newoperation[10]
+*            Holds the operation of the new meta data operation
 *
 * @param[in] newCycleTime
-*            Holds the cycle time of the new meta data opperation
+*            Holds the cycle time of the new meta data operation
 *
 * @return None
 *
 * @note: None
 */
 void AddToList(MetaDataNode *head, char newCommand,
-        char newOpperation[10], int newCycleTime)
+        char newoperation[10], int newCycleTime)
 {
     MetaDataNode *currentNode = head;
 
     MetaDataNode *newNode = malloc(sizeof(MetaDataNode));
-    makeNode(newNode, newCommand, newOpperation, newCycleTime);
+    makeNode(newNode, newCommand, newoperation, newCycleTime);
 
     while(currentNode->nextNode != NULL)
     {
@@ -158,7 +158,7 @@ void PrintList(MetaDataNode *head)
     while(currentNode != NULL)
     {
         printf("Command: %c\n", currentNode->command);
-        printf("Opperation: %s\n", currentNode->opperation);
+        printf("operation: %s\n", currentNode->operation);
         printf("Cycle Time: %i\n\n", currentNode->cycleTime);
         currentNode = currentNode->nextNode;
     }

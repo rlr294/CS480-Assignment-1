@@ -37,6 +37,7 @@
 #define LOG_TO_ERROR -2
 #define CONFIG_FILE_ERROR -3
 #define META_DATA_FILE_ERROR -4
+#define META_DATA_FORMAT_ERROR -5
 
 int ReadConfig(char* configFileName, ConfigInfo *configData);
 

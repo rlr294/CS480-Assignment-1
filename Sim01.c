@@ -100,5 +100,9 @@ void errorCheck(int errorNum)
     {
         printf("Error opening meta data file\n");
     }
+    else if(errorNum == META_DATA_FORMAT_ERROR)
+    {
+        printf("Invalid meta data format");
+    }
     exit(2);
 }
