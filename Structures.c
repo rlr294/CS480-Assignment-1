@@ -28,6 +28,12 @@
 #include <stdlib.h>
 #include "Structures.h"
 
+static char* convertSchedulingCode(enum cpuSchedulingCode code);
+static char* convertLogTo(enum logTo log);
+static void makeNode(MetaDataNode *newNode, char newCommand,
+        char newOperation[10], int newCycleTime);
+
+
 // Free Function Implementation ///////////////////////////////////
 
 /*

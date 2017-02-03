@@ -32,14 +32,18 @@
 #include "Structures.h"
 #include "Parser.h"
 
+void errorCheck(int errorNum);
+
 // Main Function Implementation ///////////////////////////////////
 int main(int argc, char const *argv[])
 {
     char configFileName[40];
-    ConfigInfo configData = {};
+    ConfigInfo configData = {-1, "\0", -1, -1, -1, -1, -1, -1, "\0"};
     int errorNum = 0;
     MetaDataNode head = {};
 
+    //printf("%d %s %d %d %d %d %d %d %s", configData.versionPhase, configData.filePath, configData.cpuSchedulingCode, configData.quantumTime,
+        //configData.memoryAvailable, configData.processorCycleTime, configData.ioCycleTime, configData.logTo, configData.logFilePath);
     if(argc != 2)
     {
         printf("Usage: %s configFileName\n\n", argv[0]);
@@ -104,5 +108,9 @@ void errorCheck(int errorNum)
     {
         printf("Invalid meta data format");
     }
-    exit(2);
+    else if(errorNum == CONFIG_FORMAT_ERROR)
+    {
+        printf("Missing required configuration information");
+    }
+    exit(1);
 }

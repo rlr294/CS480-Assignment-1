@@ -32,6 +32,14 @@
 #include "Parser.h"
 #include "Sim01.h"
 
+static int ConvertSchedulingCode(char* codeString);
+static int ConvertLogTo(char* logString);
+static void RemoveSpaces(char* sourceString);
+static Boolean IsValidCommand(char command);
+static Boolean IsValidOperation(char* operation);
+static int HandleInstruction(char* instruction, MetaDataNode *head);
+static int CheckConfigData(ConfigInfo *configData);
+
 // Free Function Implementation ///////////////////////////////////
 
 /*
@@ -49,7 +57,7 @@ static int ConvertSchedulingCode(char* codeString)
 {
     if(strcmp(codeString, "NONE") == 0)
     {
-        return NONE;    
+        return NONE;
     }
     else if(strcmp(codeString, "FCFS-N") == 0)
     {
@@ -108,20 +116,42 @@ static int ConvertLogTo(char* logString)
     }
 }
 
-void RemoveSpaces(char* source)
+/*
+* @brief Takes a string and removes all spaces and new lines from it
+*
+* @pre char* sourceString is a pointer to a string
+*
+* @param[in] sourceString
+*            points to the string to be changed
+*
+* @return None
+*
+* @note: None
+*/
+static void RemoveSpaces(char* sourceString)
 {
-  char* i = source;
-  char* j = source;
-  while(*j != 0)
+  char* tempString1 = sourceString;
+  char* tempString2 = sourceString;
+  while(*tempString2 != 0)
   {
-    *i = *j++;
-    if(*i != ' ' && *i != '\n')
-      i++;
+    *tempString1 = *tempString2++;
+    if(*tempString1 != ' ' && *tempString1 != '\n')
+      tempString1++;
   }
-  *i = 0;
+  *tempString1 = 0;
 }
 
-Boolean IsValidCommand(char command)
+/*
+* @brief Checks a command to ensure it is one of the valid values
+*
+* @param[in] operation
+*            holds the command
+*
+* @return True if valid, else false
+*
+* @note: None
+*/
+static Boolean IsValidCommand(char command)
 {
     if(command == 'S' || command == 'A' || command == 'P'
         || command == 'M' || command == 'I' || command == 'O')
@@ -135,7 +165,17 @@ Boolean IsValidCommand(char command)
 
 }
 
-Boolean IsValidOperation(char* operation)
+/*
+* @brief Checks an operation to ensure it is one of the valid values
+*
+* @param[in] operation
+*            string holding the operation
+*
+* @return True if valid, else false
+*
+* @note: None
+*/
+static Boolean IsValidOperation(char* operation)
 {
     if(strcmp(operation, "access") == 0|| strcmp(operation, "allocate") == 0
         || strcmp(operation, "end") == 0 || strcmp(operation, "harddrive") == 0
@@ -229,6 +269,34 @@ static int HandleInstruction(char* instruction, MetaDataNode *head)
 }
 
 /*
+* @brief Checks a ConfigInfo struct to ensure that all it's elements have
+*        been assigned
+*
+* @param[in] configData
+*            pointer to the struct where the configuration data is be stored
+*
+* @return error codes: 0 represents no error, negative numbers represent errors
+*
+* @note: None
+*/
+static int CheckConfigData(ConfigInfo *configData)
+{
+    if(configData->versionPhase < 0 || configData->filePath[0] == '\0'
+        || configData->quantumTime < 0
+        || configData->memoryAvailable < 0
+        || configData->processorCycleTime < 0
+        || configData->ioCycleTime < 0
+        || configData->logFilePath[0] == '\0')
+    {
+        return CONFIG_FORMAT_ERROR;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+/*
 * @brief Reads configuration information from a config file and stores it
 *        in a ConfigInfo struct
 *
@@ -278,15 +346,20 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
     }
 
     configData->cpuSchedulingCode = ConvertSchedulingCode(schedulingCode);
-    if(configData->cpuSchedulingCode < 0)
+    if(configData->cpuSchedulingCode == CPU_SCHEDULING_CODE_ERROR)
     {
         return CPU_SCHEDULING_CODE_ERROR;
     }
 
     configData->logTo = ConvertLogTo(logTo);
-    if(configData->logTo < 0)
+    if(configData->logTo == LOG_TO_ERROR)
     {
         return LOG_TO_ERROR;
+    }
+
+    if(CheckConfigData(configData) < 0)
+    {
+        return CONFIG_FORMAT_ERROR;
     }
 
     fclose(configFile);

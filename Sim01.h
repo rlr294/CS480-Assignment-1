@@ -17,6 +17,4 @@
 
 typedef enum {FALSE, TRUE} Boolean;
 
-void errorCheck(int errorNum);
-
 #endif //SIM01_H
