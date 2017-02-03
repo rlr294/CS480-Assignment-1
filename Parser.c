@@ -249,6 +249,8 @@ static int HandleInstruction(char* instruction, MetaDataNode *head)
         return META_DATA_FORMAT_ERROR;
     }
 
+    //stores the number after the close parenthesis into cycleTime
+    //stringToLongPtr catches the cases when the file formatting is wrong
     cycleTime = strtol(closeParenthesis + 1, &stringToLongPtr, 10);
     if(stringToLongPtr == closeParenthesis + 1 || stringToLongPtr[0] != '\0')
     {
@@ -320,6 +322,7 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
     char logTo[7];
     FILE *configFile;
     char line[256];
+
     configFile = fopen(configFileName, "r");
 
     if(configFile == NULL)
@@ -327,6 +330,7 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
         return CONFIG_FILE_ERROR;
     }
 
+    //reads information in each line into configData
     while(fgets(line, sizeof(line), configFile))
     {
         RemoveSpaces(line);
@@ -349,6 +353,8 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
         sscanf(line, "LogFilePath:%s", configData->logFilePath);
     }
 
+
+    //Checks to ensure all config data was formatted correctly
     configData->cpuSchedulingCode = ConvertSchedulingCode(schedulingCode);
     if(configData->cpuSchedulingCode == CPU_SCHEDULING_CODE_ERROR)
     {
@@ -399,8 +405,8 @@ int ReadMetaData(char* metaDataFileName, MetaDataNode *head)
         return META_DATA_FILE_ERROR;
     }
 
-    //fgets(line, sizeof(line), metaDataFile); //handles the Start Program line of the file
-
+    //Reads through the metaDataFile line by line and stores the
+    //information in a linked list
     while(fgets(line, sizeof(line), metaDataFile))
     {
         RemoveSpaces(line);

@@ -46,8 +46,6 @@ int main(int argc, char const *argv[])
     int errorNum = 0;
     MetaDataNode head = {};
 
-    //printf("%d %s %d %d %d %d %d %d %s", configData.versionPhase, configData.filePath, configData.cpuSchedulingCode, configData.quantumTime,
-        //configData.memoryAvailable, configData.processorCycleTime, configData.ioCycleTime, configData.logTo, configData.logFilePath);
     if(argc != 2)
     {
         printf("Usage: %s configFileName\n\n", argv[0]);
