@@ -1,5 +1,5 @@
 /**
-* @file sim01.h
+* @file sim02.h
 *
 * @brief Header file for the simulation program
 *
@@ -11,9 +11,9 @@
 *
 * @note None
 */
-#ifndef SIM01_H
-#define SIM01_H
+#ifndef SIM02_H
+#define SIM02_H
 
 typedef enum {FALSE, TRUE} Boolean;
 
-#endif //SIM01_H
+#endif //SIM02_H

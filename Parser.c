@@ -34,7 +34,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Parser.h"
-#include "Sim01.h"
+#include "Sim02.h"
 
 static int ConvertSchedulingCode(char* codeString);
 static int ConvertLogTo(char* logString);

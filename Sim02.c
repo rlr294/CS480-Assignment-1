@@ -1,5 +1,5 @@
 /**
-* @file structures.c
+* @file Sim02.c
 *
 * @brief Driver program for running the simulator
 *
@@ -32,11 +32,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "Sim01.h"
+#include "Sim02.h"
 #include "Structures.h"
 #include "Parser.h"
 
-void errorCheck(int errorNum);
+Boolean errorCheck(int errorNum);
 
 // Main Function Implementation ///////////////////////////////////
 int main(int argc, char const *argv[])
@@ -55,16 +55,45 @@ int main(int argc, char const *argv[])
     {
         strcpy(configFileName, argv[1]);
     }
+    printf("Operating System Simulator\n==========================\n\n");
 
+    printf("Loading configuration file\n");
     errorNum = ReadConfig(configFileName, &configData);
-    errorCheck(errorNum);
+    if(errorCheck(errorNum))
+    {
+        exit(1);
+    }
 
-    PrintConfig(&configData);
-
+    printf("Loading meta-data file\n");
     errorNum = ReadMetaData(configData.filePath , &head);
-    errorCheck(errorNum);
+    if(errorCheck(errorNum))
+    {
+        exit(1);
+    }
 
-    PrintList(&head);
+    printf("==========================\n\nBegin Simulation\n");
+
+    //Print System start
+    //Start Timer
+
+    //Print PCB creation
+
+    //Make PCBs in new state
+    //Print initialized
+
+    //Set PCBs to ready state
+    //Print ready
+
+    //Set PCB running
+    //Print running
+
+    //Start run while loop, exit condition on PCB.State == Exit
+        //while loop calls run on PCB0
+        //if run returns PCB complete
+            //set PCB.state = Exit
+            //Print Exit state
+
+    //Print System Stop
 
     return 0;
 }
@@ -74,21 +103,20 @@ int main(int argc, char const *argv[])
 /*
 * @brief Checks if there have been errors
 *
-* @details Upon encountering an error prints out an error code and exits the
-*          program
+* @details Upon encountering an error prints out an error code
 *
 * @param[in] errorNum
 *            holds the error code
 *
-* @return None
+* @return TRUE if there are errors, FALSE if there are not
 *
 * @note: None
 */
-void errorCheck(int errorNum)
+Boolean errorCheck(int errorNum)
 {
     if(errorNum == 0)
     {
-        return;
+        return FALSE;
     }
     else if(errorNum == CPU_SCHEDULING_CODE_ERROR)
     {
@@ -114,5 +142,5 @@ void errorCheck(int errorNum)
     {
         printf("Missing required configuration information");
     }
-    exit(1);
+    return TRUE;
 }
