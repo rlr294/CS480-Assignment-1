@@ -194,16 +194,16 @@ void timeToString( int secTime, int uSecTime, char *timeStr )
     }
 }
 
-   /*
-   * @brief Waits for a given amount of milliseconds
-   *
-   * @param[in] milliseconds
-   *            stores how many milliseconds to wait for
-   *
-   * @return None
-   *
-   * @note: None
-   */
+/*
+* @brief Waits for a given amount of milliseconds
+*
+* @param[in] milliseconds
+*            stores how many milliseconds to wait for
+*
+* @return None
+*
+* @note: None
+*/
 void delay(int milliseconds)
 {
     long pause;
