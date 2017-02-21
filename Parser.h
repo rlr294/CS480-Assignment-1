@@ -1,5 +1,5 @@
 /**
-* @file parser.h
+* @file Parser.h
 *
 * @brief Header file for the data parser
 *
@@ -18,13 +18,16 @@
 * C.S. Student (26 January 2017)
 * Basic creation of this file
 *
-* @note None
+* @note requires Sim02.h and Structures.h
 */
 #ifndef PARSER_H
 #define PARSER_H
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "Structures.h"
+#include "Sim02.h"
 
 #define NONE 0
 #define FCFS_N 1
@@ -43,6 +46,7 @@
 #define META_DATA_FILE_ERROR -4
 #define META_DATA_FORMAT_ERROR -5
 #define CONFIG_FORMAT_ERROR -6
+#define CONFIG_BOUNDS_ERROR -7
 
 int ReadConfig(char* configFileName, ConfigInfo *configData);
 

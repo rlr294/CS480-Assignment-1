@@ -1,9 +1,9 @@
 /**
-* @file parser.c
+* @file Parser.c
 *
-* @brief Implementation file for parser class
+* @brief Implementation file for Parser class
 *
-* @details Implements all member methods of the paser class
+* @details Implements all member methods of the Parser class
 *
 * @commit 12b42c2
 * C.S. Student (3 February 2017)
@@ -29,12 +29,9 @@
 * C.S. Student (26 January 2017)
 * Basic creation of this file
 *
-* @note Requires parser.h
+* @note Requires Parser.h
 */
-#include <string.h>
-#include <stdlib.h>
 #include "Parser.h"
-#include "Sim02.h"
 
 static int ConvertSchedulingCode(char* codeString);
 static int ConvertLogTo(char* logString);
@@ -248,6 +245,10 @@ static int HandleInstruction(char* instruction, MetaDataNode *head)
     {
         return META_DATA_FORMAT_ERROR;
     }
+    if(strcmp(operation, "harddrive") == 0)
+    {
+        strcpy(operation, "hard drive");
+    }
 
     //stores the number after the close parenthesis into cycleTime
     //stringToLongPtr catches the cases when the file formatting is wrong
@@ -287,10 +288,37 @@ static int HandleInstruction(char* instruction, MetaDataNode *head)
 */
 static int CheckConfigData(ConfigInfo *configData)
 {
+    if(configData->versionPhase < 0 || configData->versionPhase > 10)
+    {
+        return CONFIG_BOUNDS_ERROR;
+    }
+
+    if(configData->quantumTime < 0 || configData->quantumTime > 100)
+    {
+        return CONFIG_BOUNDS_ERROR;
+    }
+
+    if(configData->memoryAvailable < 0
+        || configData->memoryAvailable > 1048576)
+    {
+        return CONFIG_BOUNDS_ERROR;
+    }
+
+    if(configData->pCycleTime < 1
+        || configData->pCycleTime > 1000)
+    {
+        return CONFIG_BOUNDS_ERROR;
+    }
+
+    if(configData->ioCycleTime < 1 || configData->ioCycleTime > 10000)
+    {
+        return CONFIG_BOUNDS_ERROR;
+    }
+
     if(configData->versionPhase < 0 || configData->filePath[0] == '\0'
         || configData->quantumTime < 0
         || configData->memoryAvailable < 0
-        || configData->processorCycleTime < 0
+        || configData->pCycleTime < 0
         || configData->ioCycleTime < 0
         || configData->logFilePath[0] == '\0')
     {
@@ -322,6 +350,7 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
     char logTo[7];
     FILE *configFile;
     char line[256];
+    int errorNum = 0;
 
     configFile = fopen(configFileName, "r");
 
@@ -344,7 +373,7 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
             &configData->memoryAvailable);
 
         sscanf(line, "ProcessorCycleTime(msec):%d",
-            &configData->processorCycleTime);
+            &configData->pCycleTime);
 
         sscanf(line, "I/OCycleTime(msec):%d",
             &configData->ioCycleTime);
@@ -354,7 +383,7 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
     }
 
 
-    //Checks to ensure all config data was formatted correctly
+    //Checks to ensure all config data was formatted correctly and within bounds
     configData->cpuSchedulingCode = ConvertSchedulingCode(schedulingCode);
     if(configData->cpuSchedulingCode == CPU_SCHEDULING_CODE_ERROR)
     {
@@ -367,10 +396,12 @@ int ReadConfig(char* configFileName, ConfigInfo *configData)
         return LOG_TO_ERROR;
     }
 
-    if(CheckConfigData(configData) < 0)
+    errorNum = CheckConfigData(configData);
+    if(errorNum < 0)
     {
-        return CONFIG_FORMAT_ERROR;
+        return errorNum;
     }
+
 
     fclose(configFile);
     return 0;

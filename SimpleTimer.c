@@ -8,7 +8,8 @@
  *
  * @details Implements member methods for timing
  *
- * @version 2.00 (13 January 2017)
+ * @version 2.10 (21 February 2017)
+ *          2.00 (13 January 2017)
  *          1.00 (11 September 2015)
  *
  * @Note Requires SimpleTimer.h.
@@ -24,21 +25,22 @@
 
 #include "SimpleTimer.h"
 
-double accessTimer( int controlCode, char *timeStr )
-   {
-    static Boolean running = False;
-    static Boolean dataGood = False;
+double accessTimer(int controlCode, char *timeStr)
+{
+    static Boolean running = FALSE;
+    static Boolean dataGood = FALSE;
     static int startSec = 0, endSec = 0, startUSec = 0, endUSec = 0;
     struct timeval startData, endData;
     double fpTime = 0.0;
     int secDiff, usecDiff;
+    double currentTimer = strtof(timeStr, NULL);
 
-    switch( controlCode )
-       {
+    switch(controlCode)
+    {
         case START_TIMER:
            gettimeofday( &startData, NULL );
-           running = True;
-           dataGood = False;
+           running = TRUE;
+           dataGood = FALSE;
 
            startSec = startData.tv_sec;
            startUSec = startData.tv_usec;
@@ -46,62 +48,92 @@ double accessTimer( int controlCode, char *timeStr )
            break;
 
         case STOP_TIMER:
-           if( running == True )
-              {
+           if(running == TRUE)
+           {
                gettimeofday( &endData, NULL );
-               running = False;
-               dataGood = True;
+               running = FALSE;
+               dataGood = TRUE;
                endSec = endData.tv_sec;
                endUSec = endData.tv_usec;
                fpTime = (double) endSec + (double) endUSec / 1000000;
-              }
+           }
 
            // assume timer not running
            else
-              {
-               dataGood = False;
+           {
+               dataGood = FALSE;
                fpTime = 0.0;
-              }
+           }
 
            break;
 
         case RESET_TIMER:
-           running = False;
-           dataGood = False;
-           startSec = 0;
-           endSec = 0;
-           startUSec = 0;
-           endUSec = 0;
-           fpTime = 0.0;
-           break;
+            running = FALSE;
+            dataGood = FALSE;
+            startSec = 0;
+            endSec = 0;
+            startUSec = 0;
+            endUSec = 0;
+            fpTime = 0.0;
+            break;
 
         case GET_TIME_DIFF:
-           if( running == False && dataGood == True )
-              {
-               secDiff = endSec - startSec;
-               usecDiff = endUSec - startUSec;
-               fpTime = (double) secDiff + (double) usecDiff / 1000000;
+            //stop the timer
+            if(running == TRUE)
+            {
+                gettimeofday(&endData, NULL);
+                running = FALSE;
+                dataGood = TRUE;
+                endSec = endData.tv_sec;
+                endUSec = endData.tv_usec;
+                fpTime = (double) endSec + (double) endUSec / 1000000;
+            }
 
-               if( usecDiff < 0 )
-                  {
-                   usecDiff = usecDiff + 1000000;
-                   secDiff = secDiff - 1;
-                  }
+            // assume timer not running
+            else
+            {
+                dataGood = FALSE;
+                fpTime = 0.0;
+            }
 
-               timeToString( secDiff, usecDiff, timeStr );
-              }
+
+            if(running == FALSE && dataGood == TRUE)
+            {
+                secDiff = endSec - startSec;
+                usecDiff = endUSec - startUSec;
+                fpTime = (double) secDiff + (double) usecDiff / 1000000;
+
+                if(usecDiff < 0)
+                {
+                    usecDiff = usecDiff + 1000000;
+                    secDiff = secDiff - 1;
+                }
+
+                timeToString(secDiff, usecDiff, timeStr);
+                currentTimer = currentTimer + strtof(timeStr, NULL);
+                sprintf(timeStr, "%f", currentTimer);
+
+                //Start Timer
+                gettimeofday(&startData, NULL);
+                running = TRUE;
+                dataGood = FALSE;
+
+                startSec = startData.tv_sec;
+                startUSec = startData.tv_usec;
+                fpTime = (double) startSec + (double) startUSec / 1000000;
+            }
 
            // assume timer running or data not good
            else
-              {
+           {
                fpTime = 0.0;
-              }
+           }
 
            break;
-       }
+    }
 
     return fpTime;
-   }
+}
 
 /* This is a bit of a drawn-out function, but it is written
    to force the time result to always be in the form x.xxxxxxx
@@ -109,57 +141,78 @@ double accessTimer( int controlCode, char *timeStr )
    when the time is presented as a floating point number
 */
 void timeToString( int secTime, int uSecTime, char *timeStr )
-   {
+{
     int low, high, index = 0;
     char temp;
 
-    while( uSecTime > 0 )
-       {
-        timeStr[ index ] = (char) uSecTime % 10 + '0';
-         uSecTime /= 10;
+    while(uSecTime > 0)
+    {
+        timeStr[index] = (char) (uSecTime % 10 + '0');
+        uSecTime /= 10;
 
         index++;
-       }
+    }
 
-    while( index < 6 )
-       {
-        timeStr[ index ] = '0';
+    while(index < 6)
+    {
+        timeStr[index] = '0';
 
         index++;
-       }
+    }
 
-    timeStr[ index ] = RADIX_POINT;
+    timeStr[index] = RADIX_POINT;
 
     index++;
 
-    if( secTime == 0 )
-       {
-        timeStr[ index ] = '0';
+    if(secTime == 0)
+    {
+        timeStr[index] = '0';
 
         index++;
        }
 
-    while( secTime > 0 )
-       {
-        timeStr[ index ] = (char) secTime % 10 + '0';
+    while(secTime > 0)
+    {
+        timeStr[index] = (char) (secTime % 10 + '0');
 
         secTime /= 10;
 
         index++;
-       }
+    }
 
-    timeStr[ index ] = NULL_CHAR;
+    timeStr[index] = NULL_CHAR;
 
     low = 0; high = index - 1;
 
-    while( low < high )
-       {
-        temp = timeStr[ low ];
-        timeStr[ low ] = timeStr[ high ];
-        timeStr[ high ] = temp;
+    while(low < high)
+    {
+        temp = timeStr[low];
+        timeStr[low] = timeStr[high];
+        timeStr[high] = temp;
 
         low++; high--;
-       }
-   }
+    }
+}
+
+   /*
+   * @brief Waits for a given amount of milliseconds
+   *
+   * @param[in] milliseconds
+   *            stores how many milliseconds to wait for
+   *
+   * @return None
+   *
+   * @note: None
+   */
+void delay(int milliseconds)
+{
+    long pause;
+    clock_t now,then;
+
+    pause = milliseconds * (CLOCKS_PER_SEC / 1000);
+    now = then = clock();
+    while((now-then) < pause )
+        now = clock();
+}
 
 #endif // ifndef SIMPLETIMER_CPP

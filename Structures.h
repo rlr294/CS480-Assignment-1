@@ -19,6 +19,10 @@
 #ifndef STRUCTURES_H
 #define STRUCTURES_H
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 typedef struct ConfigInfo
 {
     int versionPhase;
@@ -27,7 +31,7 @@ typedef struct ConfigInfo
         cpuSchedulingCode;
     int quantumTime;
     int memoryAvailable;
-    int processorCycleTime;
+    int pCycleTime;
     int ioCycleTime;
     enum logTo {Monitor, File, Both} logTo;
     char logFilePath[40];
@@ -47,5 +51,7 @@ void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10],
 void PrintList(MetaDataNode *head);
 
 void PrintConfig(ConfigInfo *configData);
+
+char* NodeToString(MetaDataNode *node);
 
 #endif //STRUCTURES_H

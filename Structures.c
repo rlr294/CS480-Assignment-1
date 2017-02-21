@@ -1,9 +1,9 @@
 /**
-* @file structures.c
+* @file Structures.c
 *
-* @brief Implementation file for structures class
+* @brief Implementation file for Structures class
 *
-* @details Implements all member methods of the structures class
+* @details Implements all member methods of the Structures class
 *
 * @commit 12b42c2
 * C.S. Student (3 February 2017)
@@ -25,11 +25,8 @@
 * C.S. Student (26 January 2017)
 * Initial development and testing of structures class
 *
-* @note Requires structures.h
+* @note Requires Structures.h
 */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "Structures.h"
 
 static char* convertSchedulingCode(enum cpuSchedulingCode code);
@@ -201,9 +198,45 @@ void PrintConfig(ConfigInfo *configData)
         convertSchedulingCode(configData->cpuSchedulingCode));
     printf("Quantum Time (cycles): %d\n", configData->quantumTime);
     printf("Memory Available (KB): %d\n", configData->memoryAvailable);
-    printf("Processor Cycle Time (msec): %d\n", configData->processorCycleTime);
+    printf("Processor Cycle Time (msec): %d\n", configData->pCycleTime);
     printf("I/O Cycle Time (msec): %d\n", configData->ioCycleTime);
     printf("Log to: %s\n", convertLogTo(configData->logTo));
     printf("Log File Path: %s\n", configData->logFilePath);
     printf("End Simulator Configuration File.\n\n");
+}
+
+char* NodeToString(MetaDataNode *node)
+{
+    char* string = malloc(50);
+
+    if(node->command == 'S')
+    {
+        snprintf(string, 50, "OS");
+    }
+    else if(node->command == 'A')
+    {
+        snprintf(string, 50, "PA");
+    }
+    else if(node->command == 'P')
+    {
+        snprintf(string, 50, "Run operation");
+    }
+    else if(node->command == 'M')
+    {
+        snprintf(string, 50, "Memory management %s action", node->operation);
+    }
+    else if(node->command == 'I')
+    {
+        snprintf(string, 50, "%s input", node->operation);
+    }
+    else if(node->command == 'O')
+    {
+        snprintf(string, 50, "%s output", node->operation);
+    }
+    else
+    {
+        snprintf(string, 50, "error");
+    }
+
+    return string;
 }

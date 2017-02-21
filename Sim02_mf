@@ -1,12 +1,12 @@
 CC = gcc
 DEBUG = -g
-CFLAGS = -Wall -c $(DEBUG)
-LFLAGS = -Wall $(DEBUG)
+CFLAGS = -Wall -std=c99 -c $(DEBUG)
+LFLAGS = -Wall -std=c99 $(DEBUG)
 
-Sim02 : Sim02.o Structures.o Parser.o
-	$(CC) $(LFLAGS) Sim02.o Structures.o Parser.o -o Sim02
+Sim02 : Sim02.o Structures.o Parser.o Process.o SimpleTimer.o
+	$(CC) $(LFLAGS) Sim02.o Structures.o Parser.o Process.o  SimpleTimer.o -o Sim02
 
-Sim02.o : Sim02.c Sim02.h Structures.h Parser.h
+Sim02.o : Sim02.c Sim02.h Structures.h Parser.h Process.h SimpleTimer.h
 	$(CC) $(CFLAGS) Sim02.c
 
 Structures.o : Structures.c Structures.h
@@ -14,6 +14,12 @@ Structures.o : Structures.c Structures.h
 
 Parser.o : Parser.c Parser.h
 	$(CC) $(CFLAGS) Parser.c
+
+Process.o : Process.c Process.h
+	$(CC) $(CFLAGS) Process.c
+
+SimpleTimer.o : SimpleTimer.c SimpleTimer.h
+	$(CC) $(CFLAGS) SimpleTimer.c
 
 clean:
 	\rm *.o Sim02 *.stackdump

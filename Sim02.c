@@ -6,6 +6,10 @@
 * @details Uses parser and structures methods to read and store
 * configuration data and meta data
 *
+* @commit
+* C.S. Student (21 February 2017)
+* Finished coding for Project 2
+*
 * @commit 12b42c2
 * C.S. Student (3 February 2017)
 * Finished adding all error checking for the parser
@@ -27,7 +31,8 @@
 * C.S. Student (26 January 2017)
 * Basic creation of this file and creation of main
 *
-* @note Requires structures.h, structures.c, parser.h, parser.c
+* @note Requires Structures.h, Structures.c, Parser.h, Parser.c
+*       Process.h, Process.c
 */
 #include <stdio.h>
 #include <string.h>
@@ -35,8 +40,10 @@
 #include "Sim02.h"
 #include "Structures.h"
 #include "Parser.h"
+#include "Process.h"
+#include "SimpleTimer.h"
 
-Boolean errorCheck(int errorNum);
+Boolean ErrorCheck(int errorNum);
 
 // Main Function Implementation ///////////////////////////////////
 int main(int argc, char const *argv[])
@@ -45,6 +52,9 @@ int main(int argc, char const *argv[])
     ConfigInfo configData = {-1, "\0", -1, -1, -1, -1, -1, -1, "\0"};
     int errorNum = 0;
     MetaDataNode head = {};
+    char* timer = malloc(256 * sizeof(char));
+    int numberOfProcesses = 0;
+    PCB proc0 = {};//malloc(sizeof(PCB));
 
     if(argc != 2)
     {
@@ -59,41 +69,52 @@ int main(int argc, char const *argv[])
 
     printf("Loading configuration file\n");
     errorNum = ReadConfig(configFileName, &configData);
-    if(errorCheck(errorNum))
+    if(ErrorCheck(errorNum))
     {
         exit(1);
     }
 
     printf("Loading meta-data file\n");
     errorNum = ReadMetaData(configData.filePath , &head);
-    if(errorCheck(errorNum))
+    if(ErrorCheck(errorNum))
     {
         exit(1);
     }
 
     printf("==========================\n\nBegin Simulation\n");
 
-    //Print System start
-    //Start Timer
+    strcpy(timer, "0.000000");
+    accessTimer(START_TIMER, timer);
+    printf("Time: %9s, System Start\n", timer);
 
-    //Print PCB creation
+    accessTimer(GET_TIME_DIFF, timer);
+    printf("Time: %9s, OS: Begin PCB Creation\n", timer);
 
-    //Make PCBs in new state
-    //Print initialized
+    NewProcess(&proc0, &head, numberOfProcesses);
+    accessTimer(GET_TIME_DIFF, timer);
+    printf("Time: %9s, OS: All processes initialized in New state\n", timer);
 
-    //Set PCBs to ready state
-    //Print ready
+    SetReady(&proc0);
+    accessTimer(GET_TIME_DIFF, timer);
+    printf("Time: %9s, OS: All processes initialized in New state\n", timer);
 
-    //Set PCB running
-    //Print running
+    SetRunning(&proc0);
+    accessTimer(GET_TIME_DIFF, timer);
+    printf("Time: %9s, OS: Process %d set in Running state\n",
+        timer, proc0.procNum);
 
-    //Start run while loop, exit condition on PCB.State == Exit
-        //while loop calls run on PCB0
-        //if run returns PCB complete
-            //set PCB.state = Exit
-            //Print Exit state
+    while(proc0.currentNode != NULL)
+    {
+        Run(&proc0, &configData, timer);
+    }
 
-    //Print System Stop
+    SetExit(&proc0);
+    accessTimer(GET_TIME_DIFF, timer);
+    printf("Time: %9s, OS: Process %d set in Exit state\n",
+        timer, proc0.procNum);
+
+    accessTimer(GET_TIME_DIFF, timer);
+    printf("Time: %9s, System stop\n", timer);
 
     return 0;
 }
@@ -112,7 +133,7 @@ int main(int argc, char const *argv[])
 *
 * @note: None
 */
-Boolean errorCheck(int errorNum)
+Boolean ErrorCheck(int errorNum)
 {
     if(errorNum == 0)
     {
@@ -136,11 +157,15 @@ Boolean errorCheck(int errorNum)
     }
     else if(errorNum == META_DATA_FORMAT_ERROR)
     {
-        printf("Invalid meta data format");
+        printf("Invalid meta data format\n");
     }
     else if(errorNum == CONFIG_FORMAT_ERROR)
     {
-        printf("Missing required configuration information");
+        printf("Missing required configuration information\n");
+    }
+    else if(errorNum == CONFIG_BOUNDS_ERROR)
+    {
+        printf("At least one configuration value is out of bounds\n");
     }
     return TRUE;
 }
