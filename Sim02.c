@@ -100,14 +100,14 @@ int main(int argc, char const *argv[])
     accessTimer(GET_TIME_DIFF, timer);
     printf("Time: %9s, OS: Begin PCB Creation\n", timer);
 
-    //create all needed processes in the New state
+    //create all needed processes in the New state, stored in processList
     CreateProcesses(processList, &head);
     accessTimer(GET_TIME_DIFF, timer);
     printf("Time: %9s, OS: All processes initialized in New state\n", timer);
 
     //loop through the processes, setting each of them to ready
     processHead = processList;
-    while(processList->nextProcess != NULL)
+    while(processList != NULL)
     {
         SetReady(processList->process);
         processList = processList->nextProcess;
@@ -118,7 +118,7 @@ int main(int argc, char const *argv[])
     printf("Time: %9s, OS: All processes now set in Ready state\n", timer);
 
     //for each process:
-    while(processList->nextProcess != NULL)
+    while(processList != NULL)
     {
         SetRunning(processList->process); //set it to running
         accessTimer(GET_TIME_DIFF, timer);
