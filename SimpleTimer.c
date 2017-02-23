@@ -25,15 +25,16 @@
 
 #include "SimpleTimer.h"
 
-double accessTimer(int controlCode, char *timeStr)
+//changed from Leverington's verison by making timeStr keep a running total
+//and by making GET_TIME_DIFF usable while the timer is running
+void accessTimer(int controlCode, char *timeStr)
 {
     static Boolean running = FALSE;
     static Boolean dataGood = FALSE;
     static int startSec = 0, endSec = 0, startUSec = 0, endUSec = 0;
     struct timeval startData, endData;
-    double fpTime = 0.0;
+    //double fpTime = 0.0;
     int secDiff, usecDiff;
-    //double currentTimer = strtof(timeStr, NULL);
 
     switch(controlCode)
     {
@@ -44,7 +45,7 @@ double accessTimer(int controlCode, char *timeStr)
 
            startSec = startData.tv_sec;
            startUSec = startData.tv_usec;
-           fpTime = (double) startSec + (double) startUSec / 1000000;
+           //fpTime = (double) startSec + (double) startUSec / 1000000;
            break;
 
         case STOP_TIMER:
@@ -55,14 +56,14 @@ double accessTimer(int controlCode, char *timeStr)
                dataGood = TRUE;
                endSec = endData.tv_sec;
                endUSec = endData.tv_usec;
-               fpTime = (double) endSec + (double) endUSec / 1000000;
+               //fpTime = (double) endSec + (double) endUSec / 1000000;
            }
 
            // assume timer not running
            else
            {
                dataGood = FALSE;
-               fpTime = 0.0;
+               //fpTime = 0.0;
            }
 
            break;
@@ -74,7 +75,7 @@ double accessTimer(int controlCode, char *timeStr)
             endSec = 0;
             startUSec = 0;
             endUSec = 0;
-            fpTime = 0.0;
+            //fpTime = 0.0;
             break;
 
         case GET_TIME_DIFF:
@@ -86,22 +87,22 @@ double accessTimer(int controlCode, char *timeStr)
                 dataGood = TRUE;
                 endSec = endData.tv_sec;
                 endUSec = endData.tv_usec;
-                fpTime = (double) endSec + (double) endUSec / 1000000;
+                //fpTime = (double) endSec + (double) endUSec / 1000000;
             }
 
             // assume timer not running
             else
             {
                 dataGood = FALSE;
-                fpTime = 0.0;
+                //fpTime = 0.0;
             }
 
-
+            //get the time since the timer was started
             if(running == FALSE && dataGood == TRUE)
             {
                 secDiff = endSec - startSec;
                 usecDiff = endUSec - startUSec;
-                fpTime = (double) secDiff + (double) usecDiff / 1000000;
+                //fpTime = (double) secDiff + (double) usecDiff / 1000000;
 
                 if(usecDiff < 0)
                 {
@@ -110,29 +111,25 @@ double accessTimer(int controlCode, char *timeStr)
                 }
 
                 timeToString(secDiff, usecDiff, timeStr);
-                //currentTimer = currentTimer + strtof(timeStr, NULL);
-                //sprintf(timeStr, "%f", currentTimer);
 
                 //Start Timer
                 gettimeofday(&startData, NULL);
                 running = TRUE;
                 dataGood = FALSE;
 
-                //startSec = startData.tv_sec;
-                //startUSec = startData.tv_usec;
-                fpTime = (double) startSec + (double) startUSec / 1000000;
+                //fpTime = (double) startSec + (double) startUSec / 1000000;
             }
 
            // assume timer running or data not good
            else
            {
-               fpTime = 0.0;
+               //fpTime = 0.0;
            }
 
            break;
     }
 
-    return fpTime;
+    //return fpTime;
 }
 
 /* This is a bit of a drawn-out function, but it is written
@@ -206,13 +203,12 @@ void timeToString( int secTime, int uSecTime, char *timeStr )
 */
 void delay(int milliseconds)
 {
-    long pause;
-    clock_t now,then;
-
-    pause = milliseconds * (CLOCKS_PER_SEC / 1000);
-    now = then = clock();
-    while((now-then) < pause )
-        now = clock();
+    long waitTime;
+    clock_t currentTime, startTime;
+    waitTime = milliseconds * (CLOCKS_PER_SEC / 1000);
+    currentTime = startTime = clock();
+    while((currentTime-startTime) < waitTime )
+        currentTime = clock();
 }
 
 #endif // ifndef SIMPLETIMER_CPP

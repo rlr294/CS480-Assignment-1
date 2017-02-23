@@ -6,6 +6,10 @@
 * @details Implements all member methods of the Process class
 *
 * @commit
+* C.S. Student (23 February 2017)
+* Added support for multiple processes
+*
+* @commit
 * C.S. Student (21 February 2017)
 * Implements the methods
 *
@@ -21,27 +25,19 @@
 // Free Function Implementation ///////////////////////////////////
 
 /*
-* @brief Initializes a process with its new values
+* @brief Creates all processses outlined in the meta-data file and
+*        stores them in the ProcessList passed as a parameter
 *
-* @param[in] process
-*            points to the PCB of a process
+* @param[in] list
+*            points to the list of PCB's
 *
 * @param[in] node
 *            points to the head node for the process
-*
-* @param[in] procNum
-*            the number associated with this process
 *
 * @return None
 *
 * @note: None
 */
-/*void CreateProcess(PCB *process, MetaDataNode *node, int procNum)
-{
-    process->state = New;
-    process->currentNode = node;
-    process->procNum = procNum;
-}*/
 void CreateProcesses(ProcessListNode *list, MetaDataNode *node)
 {
     PCB *newProc;
@@ -82,7 +78,7 @@ void CreateProcesses(ProcessListNode *list, MetaDataNode *node)
 }
 
 /*
-* @brief Initializes a process with its new values
+* @brief Runs the current command that a processes is looking at
 *
 * @param[in] process
 *            points to the PCB of a process
@@ -112,7 +108,7 @@ int Run(PCB *process, ConfigInfo *configData, char* timer)
         {
             delay(configData->ioCycleTime * process->currentNode->cycleTime);
         }
-        if(process->currentNode->command == 'M')
+        else if(process->currentNode->command == 'M')
         {
             //don't delay for memory operations
         }

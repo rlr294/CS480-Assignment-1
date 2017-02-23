@@ -39,7 +39,7 @@ enum TIMER_CTRL_CODES { START_TIMER, STOP_TIMER, RESET_TIMER, GET_TIME_DIFF };
 
 // Function Prototyp  /////////////////////////////////////////////////////////
 
-double accessTimer( int controlCode, char *timeStr );
+void accessTimer( int controlCode, char *timeStr );
 void timeToString( int secTime, int uSecTime, char *timeStr );
 void delay(int milliseconds);
 

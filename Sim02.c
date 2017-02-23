@@ -7,6 +7,10 @@
 * configuration data and meta data
 *
 * @commit
+* C.S. Student (23 February 2017)
+* Added support for multiple processes
+*
+* @commit
 * C.S. Student (21 February 2017)
 * Finished coding for Project 2
 *
@@ -53,11 +57,10 @@ int main(int argc, char const *argv[])
     int errorNum = 0;
     MetaDataNode head = {};
     char* timer = malloc(256 * sizeof(char));
-    PCB proc0 = {};
     ProcessListNode *processList = malloc(sizeof(ProcessListNode));
     ProcessListNode *processHead;
 
-
+    //ensures the proper command line arguements were given
     if(argc != 2)
     {
         printf("Usage: %s configFileName\n\n", argv[0]);
@@ -67,8 +70,10 @@ int main(int argc, char const *argv[])
     {
         strcpy(configFileName, argv[1]);
     }
+
     printf("Operating System Simulator\n==========================\n\n");
 
+    //load configuration data
     printf("Loading configuration file\n");
     errorNum = ReadConfig(configFileName, &configData);
     if(ErrorCheck(errorNum))
@@ -76,6 +81,7 @@ int main(int argc, char const *argv[])
         exit(1);
     }
 
+    //load meta-data
     printf("Loading meta-data file\n");
     errorNum = ReadMetaData(configData.filePath , &head);
     if(ErrorCheck(errorNum))
@@ -85,44 +91,47 @@ int main(int argc, char const *argv[])
 
     printf("==========================\n\nBegin Simulation\n");
 
+    //start the timer and the system
     strcpy(timer, "0.000000");
     accessTimer(START_TIMER, timer);
     printf("Time: %9s, System Start\n", timer);
 
+
     accessTimer(GET_TIME_DIFF, timer);
     printf("Time: %9s, OS: Begin PCB Creation\n", timer);
 
-
-
+    //create all needed processes in the New state
     CreateProcesses(processList, &head);
     accessTimer(GET_TIME_DIFF, timer);
     printf("Time: %9s, OS: All processes initialized in New state\n", timer);
 
-
+    //loop through the processes, setting each of them to ready
     processHead = processList;
     while(processList->nextProcess != NULL)
     {
         SetReady(processList->process);
         processList = processList->nextProcess;
     }
+    //point the list back to the start instead of the end
     processList = processHead;
     accessTimer(GET_TIME_DIFF, timer);
     printf("Time: %9s, OS: All processes now set in Ready state\n", timer);
 
-
+    //for each process:
     while(processList->nextProcess != NULL)
     {
-        SetRunning(processList->process);
+        SetRunning(processList->process); //set it to running
         accessTimer(GET_TIME_DIFF, timer);
         printf("Time: %9s, OS: Process %d set in Running state\n",
             timer, processList->process->procNum);
 
+        //execute all commands
         while(processList->process->currentNode != NULL)
         {
             Run(processList->process, &configData, timer);
         }
 
-        SetExit(processList->process);
+        SetExit(processList->process); //set it to exit
         accessTimer(GET_TIME_DIFF, timer);
         printf("Time: %9s, OS: Process %d set in Exit state\n",
             timer, processList->process->procNum);
@@ -158,7 +167,8 @@ Boolean ErrorCheck(int errorNum)
     }
     else if(errorNum == CPU_SCHEDULING_CODE_ERROR)
     {
-        printf("Invalid value for 'CPU Scheduling Code' in the configuration file\n");
+        printf("Invalid value for 'CPU Scheduling Code' "
+            "in the configuration file\n");
     }
     else if(errorNum == LOG_TO_ERROR)
     {
