@@ -33,7 +33,7 @@ double accessTimer(int controlCode, char *timeStr)
     struct timeval startData, endData;
     double fpTime = 0.0;
     int secDiff, usecDiff;
-    double currentTimer = strtof(timeStr, NULL);
+    //double currentTimer = strtof(timeStr, NULL);
 
     switch(controlCode)
     {
@@ -110,16 +110,16 @@ double accessTimer(int controlCode, char *timeStr)
                 }
 
                 timeToString(secDiff, usecDiff, timeStr);
-                currentTimer = currentTimer + strtof(timeStr, NULL);
-                sprintf(timeStr, "%f", currentTimer);
+                //currentTimer = currentTimer + strtof(timeStr, NULL);
+                //sprintf(timeStr, "%f", currentTimer);
 
                 //Start Timer
                 gettimeofday(&startData, NULL);
                 running = TRUE;
                 dataGood = FALSE;
 
-                startSec = startData.tv_sec;
-                startUSec = startData.tv_usec;
+                //startSec = startData.tv_sec;
+                //startUSec = startData.tv_usec;
                 fpTime = (double) startSec + (double) startUSec / 1000000;
             }
 

@@ -23,7 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-typedef struct ConfigInfo
+typedef struct 
 {
     int versionPhase;
     char filePath[40];

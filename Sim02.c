@@ -53,8 +53,10 @@ int main(int argc, char const *argv[])
     int errorNum = 0;
     MetaDataNode head = {};
     char* timer = malloc(256 * sizeof(char));
-    int numberOfProcesses = 0;
-    PCB proc0 = {};//malloc(sizeof(PCB));
+    PCB proc0 = {};
+    ProcessListNode *processList = malloc(sizeof(ProcessListNode));
+    ProcessListNode *processHead;
+
 
     if(argc != 2)
     {
@@ -90,28 +92,43 @@ int main(int argc, char const *argv[])
     accessTimer(GET_TIME_DIFF, timer);
     printf("Time: %9s, OS: Begin PCB Creation\n", timer);
 
-    NewProcess(&proc0, &head, numberOfProcesses);
+
+
+    CreateProcesses(processList, &head);
     accessTimer(GET_TIME_DIFF, timer);
     printf("Time: %9s, OS: All processes initialized in New state\n", timer);
 
-    SetReady(&proc0);
-    accessTimer(GET_TIME_DIFF, timer);
-    printf("Time: %9s, OS: All processes initialized in New state\n", timer);
 
-    SetRunning(&proc0);
-    accessTimer(GET_TIME_DIFF, timer);
-    printf("Time: %9s, OS: Process %d set in Running state\n",
-        timer, proc0.procNum);
-
-    while(proc0.currentNode != NULL)
+    processHead = processList;
+    while(processList->nextProcess != NULL)
     {
-        Run(&proc0, &configData, timer);
+        SetReady(processList->process);
+        processList = processList->nextProcess;
     }
-
-    SetExit(&proc0);
+    processList = processHead;
     accessTimer(GET_TIME_DIFF, timer);
-    printf("Time: %9s, OS: Process %d set in Exit state\n",
-        timer, proc0.procNum);
+    printf("Time: %9s, OS: All processes now set in Ready state\n", timer);
+
+
+    while(processList->nextProcess != NULL)
+    {
+        SetRunning(processList->process);
+        accessTimer(GET_TIME_DIFF, timer);
+        printf("Time: %9s, OS: Process %d set in Running state\n",
+            timer, processList->process->procNum);
+
+        while(processList->process->currentNode != NULL)
+        {
+            Run(processList->process, &configData, timer);
+        }
+
+        SetExit(processList->process);
+        accessTimer(GET_TIME_DIFF, timer);
+        printf("Time: %9s, OS: Process %d set in Exit state\n",
+            timer, processList->process->procNum);
+
+        processList = processList->nextProcess;
+    }
 
     accessTimer(GET_TIME_DIFF, timer);
     printf("Time: %9s, System stop\n", timer);

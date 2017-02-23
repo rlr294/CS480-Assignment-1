@@ -36,11 +36,49 @@
 *
 * @note: None
 */
-void NewProcess(PCB *process, MetaDataNode *node, int procNum)
+/*void CreateProcess(PCB *process, MetaDataNode *node, int procNum)
 {
     process->state = New;
     process->currentNode = node;
     process->procNum = procNum;
+}*/
+void CreateProcesses(ProcessListNode *list, MetaDataNode *node)
+{
+    PCB *newProc;
+    ProcessListNode *newListNode;
+    MetaDataNode *tempNode;
+    int procNum = 0;
+
+    while(node->nextNode != NULL)
+    {
+        tempNode = node->nextNode;
+        if(node->command == 'A' && strcmp(node->operation, "start") == 0)
+        {
+            newProc = malloc(sizeof(PCB));
+            newProc->state = New;
+            newProc->currentNode = node;
+            newProc->procNum = procNum;
+            procNum++;
+
+            if(list->process == NULL)
+            {
+                list->process = newProc;
+            }
+            else
+            {
+                newListNode = malloc(sizeof(ProcessListNode));
+                list->nextProcess = newListNode;
+                list = list->nextProcess;
+                list->process = newProc;
+                list->nextProcess = NULL;
+            }
+        }
+        else if(node->command == 'A' && strcmp(node->operation, "end") == 0)
+        {
+            node->nextNode = NULL;
+        }
+        node = tempNode;
+    }
 }
 
 /*
@@ -74,6 +112,10 @@ int Run(PCB *process, ConfigInfo *configData, char* timer)
         {
             delay(configData->ioCycleTime * process->currentNode->cycleTime);
         }
+        if(process->currentNode->command == 'M')
+        {
+            //don't delay for memory operations
+        }
         else
         {
             delay(configData->pCycleTime * process->currentNode->cycleTime);
@@ -86,6 +128,7 @@ int Run(PCB *process, ConfigInfo *configData, char* timer)
     }
 
     process->currentNode = process->currentNode->nextNode;
+
     return 0;
 }
 

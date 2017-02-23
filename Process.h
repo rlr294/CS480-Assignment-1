@@ -18,13 +18,22 @@
 #include "Structures.h"
 #include "SimpleTimer.h"
 
-typedef struct PCB{
+typedef struct
+{
     enum state {New, Ready, Running, Exit} state;
     MetaDataNode *currentNode;
     int procNum;
 } PCB;
 
-void NewProcess(PCB*, MetaDataNode*, int);
+
+
+typedef struct ProcessListNode
+{
+    PCB *process;
+    struct ProcessListNode *nextProcess;
+} ProcessListNode;
+
+void CreateProcesses(ProcessListNode*, MetaDataNode*);
 int Run(PCB*, ConfigInfo*, char*);
 void SetReady(PCB*);
 void SetRunning(PCB*);
