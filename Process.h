@@ -23,6 +23,7 @@ typedef struct
     enum state {New, Ready, Running, Exit} state;
     MetaDataNode *currentNode;
     int procNum;
+    int cycleTime;
 } PCB;
 
 
@@ -33,7 +34,8 @@ typedef struct ProcessListNode
     struct ProcessListNode *nextProcess;
 } ProcessListNode;
 
-void CreateProcesses(ProcessListNode*, MetaDataNode*);
+void shortestJobFirstSort(ProcessListNode *start);
+void CreateProcesses(ProcessListNode*, MetaDataNode*, ConfigInfo*);
 int Run(PCB*, ConfigInfo*, char*);
 void SetReady(PCB*);
 void SetRunning(PCB*);

@@ -137,7 +137,9 @@ static void RemoveSpaces(char* sourceString)
   {
     *tempString1 = *tempString2++;
     if(*tempString1 != ' ' && *tempString1 != '\n')
-      tempString1++;
+    {
+        tempString1++;
+    }
   }
   *tempString1 = 0;
 }
@@ -288,9 +290,9 @@ static int HandleInstruction(char* instruction, MetaDataNode *head)
 */
 static int CheckConfigData(ConfigInfo *configData)
 {
-    if(configData->versionPhase < 0 || configData->versionPhase > 10)
+    if(configData->versionPhase != 3)
     {
-        return CONFIG_BOUNDS_ERROR;
+        return WRONG_VERSION;
     }
 
     if(configData->quantumTime < 0 || configData->quantumTime > 100)

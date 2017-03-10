@@ -18,7 +18,7 @@
 * C.S. Student (26 January 2017)
 * Basic creation of this file
 *
-* @note requires Sim02.h and Structures.h
+* @note requires Sim03.h and Structures.h
 */
 #ifndef PARSER_H
 #define PARSER_H
@@ -27,7 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Structures.h"
-#include "Sim02.h"
+#include "Sim03.h"
 
 #define NONE 0
 #define FCFS_N 1
@@ -47,6 +47,7 @@
 #define META_DATA_FORMAT_ERROR -5
 #define CONFIG_FORMAT_ERROR -6
 #define CONFIG_BOUNDS_ERROR -7
+#define WRONG_VERSION -8
 
 int ReadConfig(char* configFileName, ConfigInfo *configData);
 

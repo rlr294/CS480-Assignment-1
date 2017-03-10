@@ -1,5 +1,5 @@
 /**
-* @file Sim02.c
+* @file Sim03.c
 *
 * @brief Driver program for running the simulator
 *
@@ -41,7 +41,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "Sim02.h"
+#include "Sim03.h"
 #include "Structures.h"
 #include "Parser.h"
 #include "Process.h"
@@ -101,7 +101,7 @@ int main(int argc, char const *argv[])
     printf("Time: %9s, OS: Begin PCB Creation\n", timer);
 
     //create all needed processes in the New state, stored in processList
-    CreateProcesses(processList, &head);
+    CreateProcesses(processList, &head, &configData);
     accessTimer(GET_TIME_DIFF, timer);
     printf("Time: %9s, OS: All processes initialized in New state\n", timer);
 
@@ -116,6 +116,12 @@ int main(int argc, char const *argv[])
     processList = processHead;
     accessTimer(GET_TIME_DIFF, timer);
     printf("Time: %9s, OS: All processes now set in Ready state\n", timer);
+
+    //order the processes by cycle time if using SJFN scheduling
+    if(configData.cpuSchedulingCode == SJFN)
+    {
+        shortestJobFirstSort(processList);
+    }
 
     //for each process:
     while(processList != NULL)
@@ -142,8 +148,8 @@ int main(int argc, char const *argv[])
     accessTimer(GET_TIME_DIFF, timer);
     printf("Time: %9s, System stop\n", timer);
 
-    return 0;
-}
+     return 0;
+ }
 
 // Free Function Implementation ///////////////////////////////////
 
@@ -193,6 +199,10 @@ Boolean ErrorCheck(int errorNum)
     else if(errorNum == CONFIG_BOUNDS_ERROR)
     {
         printf("At least one configuration value is out of bounds\n");
+    }
+    else if(errorNum == WRONG_VERSION)
+    {
+        printf("Wrong Version Number\n");
     }
     return TRUE;
 }

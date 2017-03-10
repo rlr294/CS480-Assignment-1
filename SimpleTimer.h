@@ -23,11 +23,12 @@
 // Header files ///////////////////////////////////////////////////////////////
 
 #include <sys/time.h>
+#include <time.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "Sim02.h"
+#include "Sim03.h"
 
 // Global Constants  //////////////////////////////////////////////////////////
 
