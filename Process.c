@@ -24,6 +24,19 @@
 
 // Free Function Implementation ///////////////////////////////////
 
+/*
+* @brief Calculates the total cycle time of a process in ms
+*
+* @param[in] node
+*            points to the head node for the process
+*
+* @param[in] configData
+*            points to the structure holding the configuration info
+*
+* @return Cycle time of process in Miliseconds
+*
+* @note: None
+*/
 int calcCycleTime(MetaDataNode *node, ConfigInfo *configData)
 {
     //cycle times for I/O commands
@@ -54,6 +67,9 @@ int calcCycleTime(MetaDataNode *node, ConfigInfo *configData)
 * @param[in] node
 *            points to the head node for the process
 *
+* @param[in] configData
+*            points to the data from the config file
+*
 * @return None
 *
 * @note: None
@@ -70,6 +86,8 @@ void CreateProcesses(ProcessListNode *list, MetaDataNode *node,
     while(node->nextNode != NULL)
     {
         tempNode = node->nextNode;
+
+        //handles the start of a new process
         if(node->command == 'A' && strcmp(node->operation, "start") == 0)
         {
             newProc = malloc(sizeof(PCB));
@@ -79,6 +97,7 @@ void CreateProcesses(ProcessListNode *list, MetaDataNode *node,
             newProc->cycleTime = 0;
             procNum++;
 
+            //handle adding the first process
             if(list->process == NULL)
             {
                 list->process = newProc;
@@ -92,6 +111,7 @@ void CreateProcesses(ProcessListNode *list, MetaDataNode *node,
                 list->nextProcess = NULL;
             }
         }
+        //handles the end of a process
         else if(node->command == 'A' && strcmp(node->operation, "end") == 0)
         {
             node->nextNode = NULL;
@@ -109,6 +129,17 @@ void CreateProcesses(ProcessListNode *list, MetaDataNode *node,
     }
 }
 
+/*
+* @brief function for pthreads to run that handles the cycle time for
+*        I/O operations
+*
+* @param[in] ptr
+*            pointer to the data being passed
+*
+* @return None
+*
+* @note: None
+*/
 void ioThreadFunction(void *ptr)
 {
     IOdata *data;
@@ -130,6 +161,9 @@ void ioThreadFunction(void *ptr)
 * @param[in] timer
 *            the current timer value
 *
+* @param[in] filePrint
+*            the buffer where all things to be logged to file is stored
+*
 * @return 0 if no errors, negative for errors
 *
 * @note: None
@@ -150,6 +184,7 @@ int Run(PCB *process, ConfigInfo *configData, char* timer, char* filePrint)
         printIfLogToMonitor(monitorPrint, configData);
         strcat(filePrint, monitorPrint);
 
+        //For I/O operations use a POSIX thread to manage cycle times
         if(process->currentNode->command == 'I'
             || process->currentNode->command == 'O')
         {

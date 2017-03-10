@@ -7,6 +7,11 @@
 * configuration data and meta data
 *
 * @commit
+* C.S. Student (10 March 2017)
+* Added support for FCFS-N and SJF-N, Added logging to file, added POSIX thread
+* handling for I/O operations
+*
+* @commit
 * C.S. Student (23 February 2017)
 * Added support for multiple processes
 *
@@ -136,12 +141,7 @@ int main(int argc, char const *argv[])
     printIfLogToMonitor(monitorPrint, &configData);
     strcat(filePrint, monitorPrint);
 
-    // //order the processes by cycle time if using SJFN scheduling
-    // if(configData.cpuSchedulingCode == SJFN)
-    // {
-    //     shortestJobFirstSort(processList);
-    // }
-
+    //Select the first process to run
     selectedProcess = getNextProcess(processList, &configData);
     accessTimer(GET_TIME_DIFF, timer);
     snprintf(monitorPrint, 100,
@@ -154,7 +154,8 @@ int main(int argc, char const *argv[])
     // for each process:
     while(selectedProcess != NULL)
     {
-        SetRunning(selectedProcess); //set it to running
+        //set it to running
+        SetRunning(selectedProcess);
         accessTimer(GET_TIME_DIFF, timer);
         snprintf(monitorPrint, 100,
             "Time: %9s, OS: Process %d set in Running state\n",
@@ -168,7 +169,8 @@ int main(int argc, char const *argv[])
             Run(selectedProcess, &configData, timer, filePrint);
         }
 
-        SetExit(selectedProcess); //set it to exit
+        //set it to exit
+        SetExit(selectedProcess);
         accessTimer(GET_TIME_DIFF, timer);
         snprintf(monitorPrint, 100,
             "Time: %9s, OS: Process %d set in Exit state\n",
@@ -176,6 +178,7 @@ int main(int argc, char const *argv[])
         printIfLogToMonitor(monitorPrint, &configData);
         strcat(filePrint, monitorPrint);
 
+        //Select the next process to run
         selectedProcess = getNextProcess(processList, &configData);
         if(selectedProcess != NULL)
         {
@@ -194,6 +197,7 @@ int main(int argc, char const *argv[])
     printIfLogToMonitor(monitorPrint, &configData);
     strcat(filePrint, monitorPrint);
 
+    //Log output to file
     if(configData.logTo == Both
         || configData.logTo == File)
     {
@@ -262,6 +266,20 @@ Boolean ErrorCheck(int errorNum)
     return TRUE;
 }
 
+/*
+* @brief Prints output to monitor if the the config file set logTo to either
+*        Both or Monitor
+*
+* @param[in] string
+*            the string that will be printed
+*
+* @param[in] configData
+*             points to the data from the config file
+*
+* @return None
+*
+* @note: None
+*/
 void printIfLogToMonitor(char* string, ConfigInfo *configData)
 {
     if(configData->logTo == -1 || configData->logTo == Both
@@ -271,6 +289,19 @@ void printIfLogToMonitor(char* string, ConfigInfo *configData)
     }
 }
 
+/*
+* @brief Gets the next process to be run based on the CPU Scheduling code
+*
+* @param[in] processList
+*            points to the list of procseses currently in memory
+*
+* @param[in] configData
+*             points to the data from the config file
+*
+* @return The next process to be run
+*
+* @note: None
+*/
 PCB* getNextProcess(ProcessListNode *processList, ConfigInfo *configData)
 {
     ProcessListNode *tempList = processList;
@@ -287,7 +318,6 @@ PCB* getNextProcess(ProcessListNode *processList, ConfigInfo *configData)
         }
         tempList = tempList->nextProcess;
     }
-
 
     if(noneReady)
     {
@@ -320,7 +350,7 @@ PCB* getNextProcess(ProcessListNode *processList, ConfigInfo *configData)
         //loop through the remaining processes
         while(tempList != NULL)
         {
-            //if the process is shorter 
+            //if the process is shorter set it as the one to be returned
             if(tempList->process->state == Ready
                 && tempList->process->cycleTime < minCycleTime)
             {
