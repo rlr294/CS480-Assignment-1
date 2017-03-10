@@ -4,7 +4,7 @@ CFLAGS = -Wall -std=c99 -c $(DEBUG)
 LFLAGS = -Wall -std=c99 $(DEBUG)
 
 Sim03 : Sim03.o Structures.o Parser.o Process.o SimpleTimer.o
-	$(CC) $(LFLAGS) Sim03.o Structures.o Parser.o Process.o  SimpleTimer.o -o Sim03
+	$(CC) $(LFLAGS) Sim03.o Structures.o Parser.o Process.o  SimpleTimer.o -lpthread -o Sim03
 
 Sim03.o : Sim03.c Sim03.h Structures.h Parser.h Process.h SimpleTimer.h
 	$(CC) $(CFLAGS) Sim03.c

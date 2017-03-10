@@ -38,16 +38,10 @@
 * @note Requires Structures.h, Structures.c, Parser.h, Parser.c
 *       Process.h, Process.c
 */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "Sim03.h"
-#include "Structures.h"
-#include "Parser.h"
-#include "Process.h"
-#include "SimpleTimer.h"
 
 Boolean ErrorCheck(int errorNum);
+PCB* getNextProcess(ProcessListNode*, ConfigInfo*);
 
 // Main Function Implementation ///////////////////////////////////
 int main(int argc, char const *argv[])
@@ -59,6 +53,10 @@ int main(int argc, char const *argv[])
     char* timer = malloc(256 * sizeof(char));
     ProcessListNode *processList = malloc(sizeof(ProcessListNode));
     ProcessListNode *processHead;
+    char* monitorPrint = malloc(100 * sizeof(char));
+    char* filePrint = malloc(10000 * sizeof(char));
+    FILE *filePointer;
+    PCB *selectedProcess = malloc(sizeof(PCB));
 
     //ensures the proper command line arguements were given
     if(argc != 2)
@@ -71,10 +69,16 @@ int main(int argc, char const *argv[])
         strcpy(configFileName, argv[1]);
     }
 
-    printf("Operating System Simulator\n==========================\n\n");
+    snprintf(monitorPrint, 100,
+        "Operating System Simulator\n==========================\n\n");
+    printf("%s", monitorPrint);
+    strcpy(filePrint, monitorPrint);
 
     //load configuration data
-    printf("Loading configuration file\n");
+    snprintf(monitorPrint, 100, "Loading configuration file\n");
+    printf("%s", monitorPrint);
+    strcat(filePrint, monitorPrint);
+
     errorNum = ReadConfig(configFileName, &configData);
     if(ErrorCheck(errorNum))
     {
@@ -82,28 +86,40 @@ int main(int argc, char const *argv[])
     }
 
     //load meta-data
-    printf("Loading meta-data file\n");
+    snprintf(monitorPrint, 100,
+        "Loading meta-data file\n==========================\n\n");
+    printf("%s", monitorPrint);
+    strcat(filePrint, monitorPrint);
+
     errorNum = ReadMetaData(configData.filePath , &head);
     if(ErrorCheck(errorNum))
     {
         exit(1);
     }
 
-    printf("==========================\n\nBegin Simulation\n");
+    snprintf(monitorPrint, 100, "Begin Simulation\n");
+    printIfLogToMonitor(monitorPrint, &configData);
+    strcat(filePrint, monitorPrint);
 
     //start the timer and the system
     strcpy(timer, "0.000000");
     accessTimer(START_TIMER, timer);
-    printf("Time: %9s, System Start\n", timer);
-
+    snprintf(monitorPrint, 100, "Time: %9s, System Start\n", timer);
+    printIfLogToMonitor(monitorPrint, &configData);
+    strcat(filePrint, monitorPrint);
 
     accessTimer(GET_TIME_DIFF, timer);
-    printf("Time: %9s, OS: Begin PCB Creation\n", timer);
+    snprintf(monitorPrint, 100, "Time: %9s, OS: Begin PCB Creation\n", timer);
+    printIfLogToMonitor(monitorPrint, &configData);
+    strcat(filePrint, monitorPrint);
 
     //create all needed processes in the New state, stored in processList
     CreateProcesses(processList, &head, &configData);
     accessTimer(GET_TIME_DIFF, timer);
-    printf("Time: %9s, OS: All processes initialized in New state\n", timer);
+    snprintf(monitorPrint, 100,
+        "Time: %9s, OS: All processes initialized in New state\n", timer);
+    printIfLogToMonitor(monitorPrint, &configData);
+    strcat(filePrint, monitorPrint);
 
     //loop through the processes, setting each of them to ready
     processHead = processList;
@@ -115,38 +131,77 @@ int main(int argc, char const *argv[])
     //point the list back to the start instead of the end
     processList = processHead;
     accessTimer(GET_TIME_DIFF, timer);
-    printf("Time: %9s, OS: All processes now set in Ready state\n", timer);
+    snprintf(monitorPrint, 100,
+        "Time: %9s, OS: All processes now set in Ready state\n", timer);
+    printIfLogToMonitor(monitorPrint, &configData);
+    strcat(filePrint, monitorPrint);
 
-    //order the processes by cycle time if using SJFN scheduling
-    if(configData.cpuSchedulingCode == SJFN)
-    {
-        shortestJobFirstSort(processList);
-    }
+    // //order the processes by cycle time if using SJFN scheduling
+    // if(configData.cpuSchedulingCode == SJFN)
+    // {
+    //     shortestJobFirstSort(processList);
+    // }
 
-    //for each process:
-    while(processList != NULL)
+    selectedProcess = getNextProcess(processList, &configData);
+    accessTimer(GET_TIME_DIFF, timer);
+    snprintf(monitorPrint, 100,
+        "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
+        timer, convertSchedulingCode(configData.cpuSchedulingCode),
+        selectedProcess->procNum, selectedProcess->cycleTime);
+    printIfLogToMonitor(monitorPrint, &configData);
+    strcat(filePrint, monitorPrint);
+
+    // for each process:
+    while(selectedProcess != NULL)
     {
-        SetRunning(processList->process); //set it to running
+        SetRunning(selectedProcess); //set it to running
         accessTimer(GET_TIME_DIFF, timer);
-        printf("Time: %9s, OS: Process %d set in Running state\n",
-            timer, processList->process->procNum);
+        snprintf(monitorPrint, 100,
+            "Time: %9s, OS: Process %d set in Running state\n",
+            timer, selectedProcess->procNum);
+        printIfLogToMonitor(monitorPrint, &configData);
+        strcat(filePrint, monitorPrint);
 
         //execute all commands
-        while(processList->process->currentNode != NULL)
+        while(selectedProcess->currentNode != NULL)
         {
-            Run(processList->process, &configData, timer);
+            Run(selectedProcess, &configData, timer, filePrint);
         }
 
-        SetExit(processList->process); //set it to exit
+        SetExit(selectedProcess); //set it to exit
         accessTimer(GET_TIME_DIFF, timer);
-        printf("Time: %9s, OS: Process %d set in Exit state\n",
-            timer, processList->process->procNum);
+        snprintf(monitorPrint, 100,
+            "Time: %9s, OS: Process %d set in Exit state\n",
+            timer, selectedProcess->procNum);
+        printIfLogToMonitor(monitorPrint, &configData);
+        strcat(filePrint, monitorPrint);
 
-        processList = processList->nextProcess;
+        selectedProcess = getNextProcess(processList, &configData);
+        if(selectedProcess != NULL)
+        {
+            accessTimer(GET_TIME_DIFF, timer);
+            snprintf(monitorPrint, 100,
+                "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
+                timer, convertSchedulingCode(configData.cpuSchedulingCode),
+                selectedProcess->procNum, selectedProcess->cycleTime);
+            printIfLogToMonitor(monitorPrint, &configData);
+            strcat(filePrint, monitorPrint);
+        }
     }
 
     accessTimer(GET_TIME_DIFF, timer);
-    printf("Time: %9s, System stop\n", timer);
+    snprintf(monitorPrint, 100, "Time: %9s, System stop\n", timer);
+    printIfLogToMonitor(monitorPrint, &configData);
+    strcat(filePrint, monitorPrint);
+
+    if(configData.logTo == Both
+        || configData.logTo == File)
+    {
+        filePointer = fopen (configData.logFilePath, "w+");
+        fprintf(filePointer ,"%s", filePrint);
+        fclose(filePointer);
+    }
+
 
      return 0;
  }
@@ -205,4 +260,76 @@ Boolean ErrorCheck(int errorNum)
         printf("Wrong Version Number\n");
     }
     return TRUE;
+}
+
+void printIfLogToMonitor(char* string, ConfigInfo *configData)
+{
+    if(configData->logTo == -1 || configData->logTo == Both
+        || configData->logTo == Monitor)
+    {
+        printf("%s", string);
+    }
+}
+
+PCB* getNextProcess(ProcessListNode *processList, ConfigInfo *configData)
+{
+    ProcessListNode *tempList = processList;
+    PCB *tempProcess = malloc(sizeof(PCB));
+    int minCycleTime = 0;
+    Boolean noneReady = TRUE;
+
+    //checks if any processes are ready set noneReady to false
+    while(tempList != NULL)
+    {
+        if(tempList->process->state == Ready)
+        {
+            noneReady = FALSE;
+        }
+        tempList = tempList->nextProcess;
+    }
+
+
+    if(noneReady)
+    {
+        return NULL;
+    }
+
+    tempList = processList;
+
+    //get process using FCFS-N selection
+    if(configData->cpuSchedulingCode == FCFSN)
+    {
+        while(tempList->process->state != Ready)
+        {
+            tempList = tempList->nextProcess;
+        }
+        return tempList->process;
+    }
+    //get processes using SJF-N selection
+    else if(configData->cpuSchedulingCode == SJFN)
+    {
+        //loop until you find a ready process
+        while(tempList->process->state != Ready && tempList != NULL)
+        {
+            tempList = tempList->nextProcess;
+        }
+
+        tempProcess = tempList->process;
+        minCycleTime = tempList->process->cycleTime;
+
+        //loop through the remaining processes
+        while(tempList != NULL)
+        {
+            //if the process is shorter 
+            if(tempList->process->state == Ready
+                && tempList->process->cycleTime < minCycleTime)
+            {
+                tempProcess = tempList->process;
+                minCycleTime = tempList->process->cycleTime;
+            }
+            tempList = tempList->nextProcess;
+        }
+        return tempProcess;
+    }
+    return NULL;
 }

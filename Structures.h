@@ -23,7 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-typedef struct 
+typedef struct
 {
     int versionPhase;
     char filePath[40];
@@ -44,6 +44,8 @@ typedef struct MetaDataNode
     int cycleTime;
     struct MetaDataNode *nextNode;
 } MetaDataNode;
+
+char* convertSchedulingCode(enum cpuSchedulingCode code);
 
 void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10],
         int newCycleTime);

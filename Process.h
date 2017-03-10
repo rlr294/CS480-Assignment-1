@@ -17,6 +17,8 @@
 
 #include "Structures.h"
 #include "SimpleTimer.h"
+#include "Sim03.h"
+#include <pthread.h>
 
 typedef struct
 {
@@ -36,7 +38,7 @@ typedef struct ProcessListNode
 
 void shortestJobFirstSort(ProcessListNode *start);
 void CreateProcesses(ProcessListNode*, MetaDataNode*, ConfigInfo*);
-int Run(PCB*, ConfigInfo*, char*);
+int Run(PCB*, ConfigInfo*, char*, char*);
 void SetReady(PCB*);
 void SetRunning(PCB*);
 void SetExit(PCB*);

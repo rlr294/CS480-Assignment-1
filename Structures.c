@@ -29,7 +29,6 @@
 */
 #include "Structures.h"
 
-static char* convertSchedulingCode(enum cpuSchedulingCode code);
 static char* convertLogTo(enum logTo log);
 static void makeNode(MetaDataNode *newNode, char newCommand,
         char newOperation[10], int newCycleTime);
@@ -48,7 +47,7 @@ static void makeNode(MetaDataNode *newNode, char newCommand,
 *
 * @note: None
 */
-static char* convertSchedulingCode(enum cpuSchedulingCode code)
+char* convertSchedulingCode(enum cpuSchedulingCode code)
 {
     static char * strings[6] = {"FCFS-N", "FCFS-N", "SJF-N", "SRTF-P",
         "FCFS-P", "RR-P"};

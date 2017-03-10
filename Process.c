@@ -25,11 +25,11 @@
 // Free Function Implementation ///////////////////////////////////
 
 /* function to swap data of two nodes a and b*/
-void swap(ProcessListNode *a, ProcessListNode *b)
+void swap(ProcessListNode *node1, ProcessListNode *node2)
 {
-    PCB* temp = a->process;
-    a->process = b->process;
-    b->process = temp;
+    PCB* temp = node1->process;
+    node1->process = node2->process;
+    node2->process = temp;
 }
 
 /* Bubble sort the given linked list */
@@ -41,7 +41,7 @@ void shortestJobFirstSort(ProcessListNode *start)
 
     do
     {
-        swapped = 0;
+        swapped = FALSE;
         ptr1 = start;
 
         while (ptr1->nextProcess != lptr)
@@ -49,7 +49,7 @@ void shortestJobFirstSort(ProcessListNode *start)
             if (ptr1->process->cycleTime > ptr1->nextProcess->process->cycleTime)
             {
                 swap(ptr1, ptr1->nextProcess);
-                swapped = 1;
+                swapped = TRUE;
             }
             ptr1 = ptr1->nextProcess;
         }
@@ -93,7 +93,8 @@ int calcCycleTime(MetaDataNode *node, ConfigInfo *configData)
 *
 * @note: None
 */
-void CreateProcesses(ProcessListNode *list, MetaDataNode *node, ConfigInfo *configData)
+void CreateProcesses(ProcessListNode *list, MetaDataNode *node,
+                      ConfigInfo *configData)
 {
     PCB *newProc;
     ProcessListNode *newListNode;
@@ -133,7 +134,9 @@ void CreateProcesses(ProcessListNode *list, MetaDataNode *node, ConfigInfo *conf
             tempNode2 = newProc->currentNode;
             while(tempNode2 != NULL)
             {
-                newProc->cycleTime = newProc->cycleTime + calcCycleTime(tempNode2, configData);
+                newProc->cycleTime = newProc->cycleTime
+                    + calcCycleTime(tempNode2, configData);
+
                 tempNode2 = tempNode2->nextNode;
             }
         }
@@ -157,35 +160,29 @@ void CreateProcesses(ProcessListNode *list, MetaDataNode *node, ConfigInfo *conf
 *
 * @note: None
 */
-int Run(PCB *process, ConfigInfo *configData, char* timer)
+int Run(PCB *process, ConfigInfo *configData, char* timer, char* filePrint)
 {
+    char* monitorPrint = malloc(100 * sizeof(char));
+
     if(process->currentNode->cycleTime != 0)
     {
         //prints the start time
         accessTimer(GET_TIME_DIFF, timer);
-        printf("Time: %9s, Process %d, %s start\n",
+        snprintf(monitorPrint, 100,
+            "Time: %9s, Process %d, %s start\n",
             timer, process->procNum, NodeToString(process->currentNode));
+        printIfLogToMonitor(monitorPrint, configData);
+        strcat(filePrint, monitorPrint);
 
         delay(calcCycleTime(process->currentNode, configData));
-        //delays for duration determined by if this is an I/O or other command
-        // if(process->currentNode->command == 'I'
-        //     || process->currentNode->command == 'O')
-        // {
-        //     delay(configData->ioCycleTime * process->currentNode->cycleTime);
-        // }
-        // else if(process->currentNode->command == 'M')
-        // {
-        //     //don't delay for memory operations
-        // }
-        // else
-        // {
-        //     delay(configData->pCycleTime * process->currentNode->cycleTime);
-        // }
 
         //prints the end time
         accessTimer(GET_TIME_DIFF, timer);
-        printf("Time: %9s, Process %d, %s end\n",
+        snprintf(monitorPrint, 100,
+            "Time: %9s, Process %d, %s end\n",
             timer, process->procNum, NodeToString(process->currentNode));
+        printIfLogToMonitor(monitorPrint, configData);
+        strcat(filePrint, monitorPrint);
     }
 
     process->currentNode = process->currentNode->nextNode;
