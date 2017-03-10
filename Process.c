@@ -24,41 +24,6 @@
 
 // Free Function Implementation ///////////////////////////////////
 
-/* function to swap data of two nodes a and b*/
-void swap(ProcessListNode *node1, ProcessListNode *node2)
-{
-    PCB* temp = node1->process;
-    node1->process = node2->process;
-    node2->process = temp;
-}
-
-/* Bubble sort the given linked list */
-void shortestJobFirstSort(ProcessListNode *start)
-{
-    int swapped;
-    ProcessListNode *ptr1 = start;
-    ProcessListNode *lptr = NULL;
-
-    do
-    {
-        swapped = FALSE;
-        ptr1 = start;
-
-        while (ptr1->nextProcess != lptr)
-        {
-            if (ptr1->process->cycleTime > ptr1->nextProcess->process->cycleTime)
-            {
-                swap(ptr1, ptr1->nextProcess);
-                swapped = TRUE;
-            }
-            ptr1 = ptr1->nextProcess;
-        }
-        lptr = ptr1;
-    }
-    while (swapped);
-}
-
-
 int calcCycleTime(MetaDataNode *node, ConfigInfo *configData)
 {
     //cycle times for I/O commands
@@ -144,6 +109,15 @@ void CreateProcesses(ProcessListNode *list, MetaDataNode *node,
     }
 }
 
+void ioThreadFunction(void *ptr)
+{
+    IOdata *data;
+    data = (IOdata *) ptr;
+    delay(data->delay);
+
+    pthread_exit(0);
+}
+
 /*
 * @brief Runs the current command that a processes is looking at
 *
@@ -163,6 +137,8 @@ void CreateProcesses(ProcessListNode *list, MetaDataNode *node,
 int Run(PCB *process, ConfigInfo *configData, char* timer, char* filePrint)
 {
     char* monitorPrint = malloc(100 * sizeof(char));
+    pthread_t thread1;
+    IOdata data1;
 
     if(process->currentNode->cycleTime != 0)
     {
@@ -174,7 +150,19 @@ int Run(PCB *process, ConfigInfo *configData, char* timer, char* filePrint)
         printIfLogToMonitor(monitorPrint, configData);
         strcat(filePrint, monitorPrint);
 
-        delay(calcCycleTime(process->currentNode, configData));
+        if(process->currentNode->command == 'I'
+            || process->currentNode->command == 'O')
+        {
+            data1.delay = calcCycleTime(process->currentNode, configData);
+            pthread_create(&thread1, NULL,
+                    (void *) &ioThreadFunction, (void *) &data1);
+
+            pthread_join(thread1, NULL);
+        }
+        else
+        {
+            delay(calcCycleTime(process->currentNode, configData));
+        }
 
         //prints the end time
         accessTimer(GET_TIME_DIFF, timer);

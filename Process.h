@@ -28,13 +28,16 @@ typedef struct
     int cycleTime;
 } PCB;
 
-
-
 typedef struct ProcessListNode
 {
     PCB *process;
     struct ProcessListNode *nextProcess;
 } ProcessListNode;
+
+typedef struct IOdata
+{
+    int delay;
+} IOdata;
 
 void shortestJobFirstSort(ProcessListNode *start);
 void CreateProcesses(ProcessListNode*, MetaDataNode*, ConfigInfo*);
