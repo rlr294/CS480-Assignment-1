@@ -239,3 +239,50 @@ char* NodeToString(MetaDataNode *node)
 
     return string;
 }
+
+Boolean isEmpty(QueueNode *head)
+{
+    if(head == NULL)
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+void Enqueue(QueueNode *head, int procNum, char command, char* operation)
+{
+    QueueNode* temp = malloc(sizeof(QueueNode));
+    temp->procNum = procNum;
+    temp->command = command;
+    strcpy(temp->operation, operation);
+    temp->next = NULL;
+
+
+    if(head == NULL)
+    {
+        head = temp;
+        return;
+    }
+
+    while(head->next != NULL)
+    {
+        head = head->next;
+    }
+
+    head->next = temp;
+}
+
+int Dequeue(QueueNode *head)
+{
+    QueueNode *temp = head;
+
+    if(head == NULL)
+    {
+        return QUEUE_EMPTY;
+    }
+
+    head = head->next;
+
+    free(temp);
+    return DEQUEUE_SUCCESS;
+}

@@ -1,5 +1,5 @@
 /**
-* @file Sim03.c
+* @file Sim04.c
 *
 * @brief Driver program for running the simulator
 *
@@ -43,10 +43,14 @@
 * @note Requires Structures.h, Structures.c, Parser.h, Parser.c
 *       Process.h, Process.c
 */
-#include "Sim03.h"
+#include "Sim04.h"
 
 Boolean ErrorCheck(int errorNum);
-PCB* getNextProcess(ProcessListNode*, ConfigInfo*);
+PCB* GetNextProcess(ProcessListNode*, ConfigInfo*);
+void NonPreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
+    char* timer, char* filePrint, ConfigInfo configData);
+void PreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
+    char* timer, char* filePrint, ConfigInfo configData);
 
 // Main Function Implementation ///////////////////////////////////
 int main(int argc, char const *argv[])
@@ -103,19 +107,19 @@ int main(int argc, char const *argv[])
     }
 
     snprintf(monitorPrint, 100, "Begin Simulation\n");
-    printIfLogToMonitor(monitorPrint, &configData);
+    PrintIfLogToMonitor(monitorPrint, &configData);
     strcat(filePrint, monitorPrint);
 
     //start the timer and the system
     strcpy(timer, "0.000000");
     accessTimer(START_TIMER, timer);
     snprintf(monitorPrint, 100, "Time: %9s, System Start\n", timer);
-    printIfLogToMonitor(monitorPrint, &configData);
+    PrintIfLogToMonitor(monitorPrint, &configData);
     strcat(filePrint, monitorPrint);
 
     accessTimer(GET_TIME_DIFF, timer);
     snprintf(monitorPrint, 100, "Time: %9s, OS: Begin PCB Creation\n", timer);
-    printIfLogToMonitor(monitorPrint, &configData);
+    PrintIfLogToMonitor(monitorPrint, &configData);
     strcat(filePrint, monitorPrint);
 
     //create all needed processes in the New state, stored in processList
@@ -123,7 +127,7 @@ int main(int argc, char const *argv[])
     accessTimer(GET_TIME_DIFF, timer);
     snprintf(monitorPrint, 100,
         "Time: %9s, OS: All processes initialized in New state\n", timer);
-    printIfLogToMonitor(monitorPrint, &configData);
+    PrintIfLogToMonitor(monitorPrint, &configData);
     strcat(filePrint, monitorPrint);
 
     //loop through the processes, setting each of them to ready
@@ -138,63 +142,34 @@ int main(int argc, char const *argv[])
     accessTimer(GET_TIME_DIFF, timer);
     snprintf(monitorPrint, 100,
         "Time: %9s, OS: All processes now set in Ready state\n", timer);
-    printIfLogToMonitor(monitorPrint, &configData);
+    PrintIfLogToMonitor(monitorPrint, &configData);
     strcat(filePrint, monitorPrint);
 
     //Select the first process to run
-    selectedProcess = getNextProcess(processList, &configData);
+    selectedProcess = GetNextProcess(processList, &configData);
     accessTimer(GET_TIME_DIFF, timer);
     snprintf(monitorPrint, 100,
         "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
         timer, convertSchedulingCode(configData.cpuSchedulingCode),
         selectedProcess->procNum, selectedProcess->cycleTime);
-    printIfLogToMonitor(monitorPrint, &configData);
+    PrintIfLogToMonitor(monitorPrint, &configData);
     strcat(filePrint, monitorPrint);
 
-    // for each process:
-    while(selectedProcess != NULL)
+    if(configData.cpuSchedulingCode == FCFSN
+        || configData.cpuSchedulingCode == SJFN)
     {
-        //set it to running
-        SetRunning(selectedProcess);
-        accessTimer(GET_TIME_DIFF, timer);
-        snprintf(monitorPrint, 100,
-            "Time: %9s, OS: Process %d set in Running state\n",
-            timer, selectedProcess->procNum);
-        printIfLogToMonitor(monitorPrint, &configData);
-        strcat(filePrint, monitorPrint);
-
-        //execute all commands
-        while(selectedProcess->currentNode != NULL)
-        {
-            Run(selectedProcess, &configData, timer, filePrint);
-        }
-
-        //set it to exit
-        SetExit(selectedProcess);
-        accessTimer(GET_TIME_DIFF, timer);
-        snprintf(monitorPrint, 100,
-            "Time: %9s, OS: Process %d set in Exit state\n",
-            timer, selectedProcess->procNum);
-        printIfLogToMonitor(monitorPrint, &configData);
-        strcat(filePrint, monitorPrint);
-
-        //Select the next process to run
-        selectedProcess = getNextProcess(processList, &configData);
-        if(selectedProcess != NULL)
-        {
-            accessTimer(GET_TIME_DIFF, timer);
-            snprintf(monitorPrint, 100,
-                "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
-                timer, convertSchedulingCode(configData.cpuSchedulingCode),
-                selectedProcess->procNum, selectedProcess->cycleTime);
-            printIfLogToMonitor(monitorPrint, &configData);
-            strcat(filePrint, monitorPrint);
-        }
+        NonPreemptiveScheduling(processList, selectedProcess, timer,
+            filePrint, configData);
+    }
+    else
+    {
+        PreemptiveScheduling(processList, selectedProcess, timer,
+            filePrint, configData);
     }
 
     accessTimer(GET_TIME_DIFF, timer);
     snprintf(monitorPrint, 100, "Time: %9s, System stop\n", timer);
-    printIfLogToMonitor(monitorPrint, &configData);
+    PrintIfLogToMonitor(monitorPrint, &configData);
     strcat(filePrint, monitorPrint);
 
     //Log output to file
@@ -280,7 +255,7 @@ Boolean ErrorCheck(int errorNum)
 *
 * @note: None
 */
-void printIfLogToMonitor(char* string, ConfigInfo *configData)
+void PrintIfLogToMonitor(char* string, ConfigInfo *configData)
 {
     if(configData->logTo == -1 || configData->logTo == Both
         || configData->logTo == Monitor)
@@ -302,14 +277,14 @@ void printIfLogToMonitor(char* string, ConfigInfo *configData)
 *
 * @note: None
 */
-PCB* getNextProcess(ProcessListNode *processList, ConfigInfo *configData)
+PCB* GetNextProcess(ProcessListNode *processList, ConfigInfo *configData)
 {
     ProcessListNode *tempList = processList;
     PCB *tempProcess = malloc(sizeof(PCB));
     int minCycleTime = 0;
     Boolean noneReady = TRUE;
 
-    //checks if any processes are ready set noneReady to false
+    //if any processes are ready set noneReady to false
     while(tempList != NULL)
     {
         if(tempList->process->state == Ready)
@@ -362,4 +337,169 @@ PCB* getNextProcess(ProcessListNode *processList, ConfigInfo *configData)
         return tempProcess;
     }
     return NULL;
+}
+
+void NonPreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
+     char* timer, char* filePrint, ConfigInfo configData)
+{
+    char* monitorPrint = malloc(100 * sizeof(char));
+    // for each process:
+    while(selectedProcess != NULL)
+    {
+        //set it to running
+        SetRunning(selectedProcess);
+        accessTimer(GET_TIME_DIFF, timer);
+        snprintf(monitorPrint, 100,
+            "Time: %9s, OS: Process %d set in Running state\n",
+            timer, selectedProcess->procNum);
+        PrintIfLogToMonitor(monitorPrint, &configData);
+        strcat(filePrint, monitorPrint);
+
+        //execute all commands
+        while(selectedProcess->currentNode != NULL)
+        {
+            Run(selectedProcess, &configData, timer, filePrint);
+        }
+
+        //set it to exit
+        SetExit(selectedProcess);
+        accessTimer(GET_TIME_DIFF, timer);
+        snprintf(monitorPrint, 100,
+            "Time: %9s, OS: Process %d set in Exit state\n",
+            timer, selectedProcess->procNum);
+        PrintIfLogToMonitor(monitorPrint, &configData);
+        strcat(filePrint, monitorPrint);
+
+        //Select the next process to run
+        selectedProcess = GetNextProcess(processList, &configData);
+        if(selectedProcess != NULL)
+        {
+            accessTimer(GET_TIME_DIFF, timer);
+            snprintf(monitorPrint, 100,
+                "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
+                timer, convertSchedulingCode(configData.cpuSchedulingCode),
+                selectedProcess->procNum, selectedProcess->cycleTime);
+            PrintIfLogToMonitor(monitorPrint, &configData);
+            strcat(filePrint, monitorPrint);
+        }
+    }
+}
+
+void PreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
+    char* timer, char* filePrint, ConfigInfo configData)
+{
+    char* monitorPrint = malloc(100 * sizeof(char));
+    QueueNode *ioOperations = malloc(sizeof(QueueNode));
+    Boolean finished = FALSE;
+    Boolean idle = FALSE;
+    int procState = PROC_READY;
+    ProcessListNode *tempProcList = processList;
+
+    while(!finished)
+    {
+        //handle if no processes are ready
+        if(selectedProcess == NULL)
+        {
+            idle = TRUE;
+
+            accessTimer(GET_TIME_DIFF, timer);
+            snprintf(monitorPrint, 100,
+                "Time: %9s, Processor/System Idle start\n", timer);
+            PrintIfLogToMonitor(monitorPrint, &configData);
+            strcat(filePrint, monitorPrint);
+
+            while(idle){
+                selectedProcess = GetNextProcess(processList, &configData);
+                if(selectedProcess != NULL)
+                {
+                    idle = FALSE;
+                }
+            }
+
+            accessTimer(GET_TIME_DIFF, timer);
+            snprintf(monitorPrint, 100,
+                "Time: %9s, Processor/System Idle end\n", timer);
+            PrintIfLogToMonitor(monitorPrint, &configData);
+            strcat(filePrint, monitorPrint);
+
+            accessTimer(GET_TIME_DIFF, timer);
+            snprintf(monitorPrint, 100,
+                "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
+                timer, convertSchedulingCode(configData.cpuSchedulingCode),
+                selectedProcess->procNum, selectedProcess->cycleTime);
+            PrintIfLogToMonitor(monitorPrint, &configData);
+            strcat(filePrint, monitorPrint);
+        }
+
+        //Run the processes current operation
+        SetRunning(selectedProcess);
+        accessTimer(GET_TIME_DIFF, timer);
+        snprintf(monitorPrint, 100,
+            "Time: %9s, OS: Process %d set in Running state\n",
+            timer, selectedProcess->procNum);
+        PrintIfLogToMonitor(monitorPrint, &configData);
+        strcat(filePrint, monitorPrint);
+
+        procState = PreemptiveRun(selectedProcess, &configData, timer, filePrint, ioOperations);
+
+        //////////////////ADD HANDLING OF IO QUEUE HERE////////////////////
+
+        if(procState == PROC_BLOCK)
+        {
+            SetBlocked(selectedProcess);
+            accessTimer(GET_TIME_DIFF, timer);
+            snprintf(monitorPrint, 100,
+                "Time: %9s, OS: Process %d set in Blocked state\n",
+                timer, selectedProcess->procNum);
+            PrintIfLogToMonitor(monitorPrint, &configData);
+            strcat(filePrint, monitorPrint);
+        }
+        else if(procState == PROC_EXIT)
+        {
+            SetExit(selectedProcess);
+            accessTimer(GET_TIME_DIFF, timer);
+            snprintf(monitorPrint, 100,
+                "Time: %9s, OS: Process %d set in Exit state\n",
+                timer, selectedProcess->procNum);
+            PrintIfLogToMonitor(monitorPrint, &configData);
+            strcat(filePrint, monitorPrint);
+        }
+        else
+        {
+            SetReady(selectedProcess);
+            accessTimer(GET_TIME_DIFF, timer);
+            snprintf(monitorPrint, 100,
+                "Time: %9s, OS: Process %d set in Ready state\n",
+                timer, selectedProcess->procNum);
+            PrintIfLogToMonitor(monitorPrint, &configData);
+            strcat(filePrint, monitorPrint);
+        }
+
+        selectedProcess = GetNextProcess(processList, &configData);
+        if(selectedProcess != NULL)
+        {
+            accessTimer(GET_TIME_DIFF, timer);
+            snprintf(monitorPrint, 100,
+                "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
+                timer, convertSchedulingCode(configData.cpuSchedulingCode),
+                selectedProcess->procNum, selectedProcess->cycleTime);
+            PrintIfLogToMonitor(monitorPrint, &configData);
+            strcat(filePrint, monitorPrint);
+        }
+        else
+        {
+            finished = TRUE;
+
+            //Loops through all the processes
+            while(tempProcList->process != NULL)
+            {
+                //If any are not in exit state, set finished to false
+                if(tempProcList->process->state != Exit)
+                {
+                    finished = FALSE;
+                }
+                tempProcList = tempProcList->nextProcess;
+            }
+        }
+    }
 }

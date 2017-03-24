@@ -18,7 +18,7 @@
 * C.S. Student (26 January 2017)
 * Basic creation of this file
 *
-* @note requires Sim03.h and Structures.h
+* @note requires Sim04.h and Structures.h
 */
 #ifndef PARSER_H
 #define PARSER_H
@@ -27,7 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Structures.h"
-#include "Sim03.h"
+#include "Sim04.h"
 
 #define NONE 0
 #define FCFS_N 1

@@ -15,14 +15,19 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
+#include "Queue.h"
 #include "Structures.h"
 #include "SimpleTimer.h"
-#include "Sim03.h"
+#include "Sim04.h"
 #include <pthread.h>
+
+#define PROC_READY 0
+#define PROC_BLOCK 1
+#define PROC_EXIT 2
 
 typedef struct
 {
-    enum state {New, Ready, Running, Exit} state;
+    enum state {New, Ready, Running, Blocked, Exit} state;
     MetaDataNode *currentNode;
     int procNum;
     int cycleTime;
@@ -42,8 +47,10 @@ typedef struct IOdata
 void shortestJobFirstSort(ProcessListNode *start);
 void CreateProcesses(ProcessListNode*, MetaDataNode*, ConfigInfo*);
 int Run(PCB*, ConfigInfo*, char*, char*);
+int PreemptiveRun(PCB*, ConfigInfo*, char*, char*, QueueNode*);
 void SetReady(PCB*);
 void SetRunning(PCB*);
+void SetBlocked(PCB*);
 void SetExit(PCB*);
 
 #endif //STRUCTURES_H

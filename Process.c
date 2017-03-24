@@ -181,7 +181,7 @@ int Run(PCB *process, ConfigInfo *configData, char* timer, char* filePrint)
         snprintf(monitorPrint, 100,
             "Time: %9s, Process %d, %s start\n",
             timer, process->procNum, NodeToString(process->currentNode));
-        printIfLogToMonitor(monitorPrint, configData);
+        PrintIfLogToMonitor(monitorPrint, configData);
         strcat(filePrint, monitorPrint);
 
         //For I/O operations use a POSIX thread to manage cycle times
@@ -204,13 +204,19 @@ int Run(PCB *process, ConfigInfo *configData, char* timer, char* filePrint)
         snprintf(monitorPrint, 100,
             "Time: %9s, Process %d, %s end\n",
             timer, process->procNum, NodeToString(process->currentNode));
-        printIfLogToMonitor(monitorPrint, configData);
+        PrintIfLogToMonitor(monitorPrint, configData);
         strcat(filePrint, monitorPrint);
     }
 
     process->currentNode = process->currentNode->nextNode;
 
     return 0;
+}
+
+int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer, char* filePrint, QueueNode* ioOperations)
+{
+    //char* monitorPrint = malloc(100 * sizeof(char));
+    return PROC_READY;
 }
 
 /*
@@ -241,6 +247,21 @@ void SetReady(PCB *process)
 void SetRunning(PCB *process)
 {
     process->state = Running;
+}
+
+/*
+* @brief Sets a process to the blocked state
+*
+* @param[in] process
+*            points to the PCB of a process
+*
+* @return None
+*
+* @note: None
+*/
+void SetBlocked(PCB *process)
+{
+    process->state = Blocked;
 }
 
 /*

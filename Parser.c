@@ -58,7 +58,7 @@ static int ConvertSchedulingCode(char* codeString)
 {
     if(strcmp(codeString, "NONE") == 0)
     {
-        return NONE;
+        return FCFS_N;
     }
     else if(strcmp(codeString, "FCFS-N") == 0)
     {
@@ -290,7 +290,7 @@ static int HandleInstruction(char* instruction, MetaDataNode *head)
 */
 static int CheckConfigData(ConfigInfo *configData)
 {
-    if(configData->versionPhase != 3)
+    if(configData->versionPhase != 4)
     {
         return WRONG_VERSION;
     }

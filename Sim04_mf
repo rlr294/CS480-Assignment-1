@@ -3,11 +3,11 @@ DEBUG = -g
 CFLAGS = -Wall -std=c99 -c $(DEBUG)
 LFLAGS = -Wall -std=c99 $(DEBUG)
 
-Sim03 : Sim03.o Structures.o Parser.o Process.o SimpleTimer.o
-	$(CC) $(LFLAGS) Sim03.o Structures.o Parser.o Process.o  SimpleTimer.o -lpthread -o Sim03
+Sim04 : Sim04.o Structures.o Parser.o Process.o SimpleTimer.o
+	$(CC) $(LFLAGS) Sim04.o Structures.o Parser.o Process.o  SimpleTimer.o -lpthread -o Sim04
 
-Sim03.o : Sim03.c Sim03.h Structures.h Parser.h Process.h SimpleTimer.h
-	$(CC) $(CFLAGS) Sim03.c
+Sim04.o : Sim04.c Sim04.h Structures.h Parser.h Process.h SimpleTimer.h
+	$(CC) $(CFLAGS) Sim04.c
 
 Structures.o : Structures.c Structures.h
 	$(CC) $(CFLAGS) Structures.c
@@ -22,4 +22,4 @@ SimpleTimer.o : SimpleTimer.c SimpleTimer.h
 	$(CC) $(CFLAGS) SimpleTimer.c
 
 clean:
-	\rm *.o Sim03 *.stackdump
+	\rm *.o Sim04

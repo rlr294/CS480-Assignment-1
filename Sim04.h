@@ -1,5 +1,5 @@
 /**
-* @file sim03.h
+* @file Sim04.h
 *
 * @brief Header file for the simulation program
 *
@@ -11,8 +11,8 @@
 *
 * @note None
 */
-#ifndef SIM03_H
-#define SIM03_H
+#ifndef SIM04_H
+#define SIM04_H
 
 #include <stdio.h>
 #include <string.h>
@@ -22,8 +22,6 @@
 #include "SimpleTimer.h"
 #include "Structures.h"
 
-typedef enum {FALSE, TRUE} Boolean;
+void PrintIfLogToMonitor(char*, ConfigInfo*);
 
-void printIfLogToMonitor(char*, ConfigInfo*);
-
-#endif //SIM03_H
+#endif //SIM04_H

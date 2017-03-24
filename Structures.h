@@ -23,6 +23,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define DEQUEUE_SUCCESS 0
+#define QUEUE_EMPTY 1
+
 typedef struct
 {
     int versionPhase;
@@ -45,6 +48,15 @@ typedef struct MetaDataNode
     struct MetaDataNode *nextNode;
 } MetaDataNode;
 
+typedef struct QueueNode {
+	int procNum;
+    char command;
+    char operation[10];
+	struct QueueNode* next;
+} QueueNode;
+
+typedef enum {FALSE, TRUE} Boolean;
+
 char* convertSchedulingCode(enum cpuSchedulingCode code);
 
 void AddToList(MetaDataNode *head, char newCommand, char newOpperation[10],
@@ -55,5 +67,11 @@ void PrintList(MetaDataNode *head);
 void PrintConfig(ConfigInfo *configData);
 
 char* NodeToString(MetaDataNode *node);
+
+Boolean isEmpty(QueueNode *head);
+
+void Enqueue(QueueNode *head, int procNum, char command, char* operation);
+
+int Dequeue(QueueNode *head);
 
 #endif //STRUCTURES_H
