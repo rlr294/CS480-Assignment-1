@@ -204,7 +204,7 @@ void PreemptiveIO(void *ptr)
         "Time: %9s, Process %d, %s end\n",
         data->timer, data->process->procNum, NodeToString(data->process->currentNode));
     PrintIfLogToMonitor(monitorPrint, data->configData);
-    strcat(data->filePrint, monitorPrint);
+    //strcat(data->filePrint, monitorPrint);
 
     //print and set new state
 }
@@ -295,7 +295,6 @@ int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer, char* fileP
         {
             data1.delay = calcCycleTime(process->currentNode, configData);
             data1.timer = timer;
-            data1.filePrint = filePrint;
             data1.configData = configData;
             data1.process = process;
             pthread_create(&thread1, NULL,
