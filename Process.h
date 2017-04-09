@@ -38,18 +38,19 @@ typedef struct ProcessListNode
     struct ProcessListNode *nextProcess;
 } ProcessListNode;
 
+typedef struct QueueNode {
+	PCB *process;
+	struct QueueNode* next;
+} QueueNode;
+
 typedef struct IOdata
 {
     int delay;
     char* timer;
     PCB *process;
+    QueueNode *processQueue;
     ConfigInfo *configData;
 } IOdata;
-
-typedef struct QueueNode {
-	PCB *process;
-	struct QueueNode* next;
-} QueueNode;
 
 void shortestJobFirstSort(ProcessListNode *start);
 void CreateProcesses(ProcessListNode*, MetaDataNode*, ConfigInfo*);

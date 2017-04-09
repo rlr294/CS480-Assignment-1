@@ -152,12 +152,23 @@ QueueNode* EnqueueFCFS(QueueNode *head, PCB* process)
         }
     }
 
-    while(head->next != NULL && nextProcNum < process->procNum)
+    if(nextProcNum > process->procNum)
     {
-            head = head->next;
+        temp->next = head;
+        originHead = temp;
+    }
+    else
+    {
+        while(head->next != NULL && nextProcNum < process->procNum)
+        {
+                head = head->next;
+        }
+
+        head->next = temp;
     }
 
-    head->next = temp;
+
+
     return originHead;
 }
 
@@ -168,7 +179,7 @@ QueueNode* Dequeue(QueueNode *head)
         return NULL;
     }
 
-    return head;
+    return head->next;
 }
 
 /*
@@ -188,22 +199,27 @@ void NonPreemptiveIO(void *ptr)
     data = (IOdata *) ptr;
     delay(data->delay);
 
+    printf("Hello?");
     pthread_exit(0);
 }
 
 void PreemptiveIO(void *ptr)
 {
-    char* monitorPrint = malloc(100 * sizeof(char));
+    // char* monitorPrint = malloc(100 * sizeof(char));
     IOdata *data;
     data = (IOdata *) ptr;
 
     delay(data->delay);
     //print end
     accessTimer(GET_TIME_DIFF, data->timer);
-    snprintf(monitorPrint, 100,
-        "Time: %9s, Process %d, %s end\n",
-        data->timer, data->process->procNum, NodeToString(data->process->currentNode));
-    PrintIfLogToMonitor(monitorPrint, data->configData);
+    printf("Time: %9s, Process %d, %s end\n", data->timer,
+         data->process->procNum, NodeToString(data->process->currentNode));
+
+    EnqueueFCFS(data->processQueue, data->process);
+    // snprintf(monitorPrint, 100,
+    //     "Time: %9s, Process %d, %s end\n",
+    //     data->timer, data->process->procNum, NodeToString(data->process->currentNode));
+    // PrintIfLogToMonitor(monitorPrint, data->configData);
     //strcat(data->filePrint, monitorPrint);
 
     //print and set new state
@@ -273,12 +289,17 @@ int Run(PCB *process, ConfigInfo *configData, char* timer, char* filePrint)
     return 0;
 }
 
-int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer, char* filePrint, QueueNode* interuptQueue, QueueNode* processQueue)
+int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer,
+    char* filePrint, QueueNode* interuptQueue, QueueNode* processQueue)
 {
     char* monitorPrint = malloc(100 * sizeof(char));
     pthread_t thread1;
     IOdata data1;
 
+    if(process->currentNode->cycleTime == 0)
+    {
+        process->currentNode = process->currentNode->nextNode;
+    }
     if(process->currentNode->cycleTime != 0)
     {
         //prints the start time
@@ -297,9 +318,11 @@ int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer, char* fileP
             data1.timer = timer;
             data1.configData = configData;
             data1.process = process;
+            data1.processQueue = processQueue;
             pthread_create(&thread1, NULL,
                     (void *) &PreemptiveIO, (void *) &data1);
 
+            process->currentNode = process->currentNode->nextNode;
             return PROC_BLOCK;
         }
         else if (process->currentNode->command == 'M') {
@@ -316,8 +339,6 @@ int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer, char* fileP
             {
                 delay(configData->pCycleTime);
                 process->currentNode->cycleTime = process->currentNode->cycleTime - 1;
-
-                printf("%d\n", process->currentNode->cycleTime);
             }
 
             if(process->currentNode->cycleTime == 0)

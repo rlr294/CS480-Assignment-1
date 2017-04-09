@@ -339,8 +339,8 @@ QueueNode* GetNextQueue(QueueNode *queue)
     return queue;
 }
 
-void NonPreemptiveScheduling(ProcessListNode *processList,
-     char* timer, char* filePrint, ConfigInfo configData, QueueNode *processQueue)
+void NonPreemptiveScheduling(ProcessListNode *processList, char* timer,
+     char* filePrint, ConfigInfo configData, QueueNode *processQueue)
 {
     char* monitorPrint = malloc(100 * sizeof(char));
     PCB *selectedProcess;
@@ -396,8 +396,8 @@ void NonPreemptiveScheduling(ProcessListNode *processList,
     }
 }
 
-void PreemptiveScheduling(ProcessListNode *processList,
-    char* timer, char* filePrint, ConfigInfo configData, QueueNode *processQueue)
+void PreemptiveScheduling(ProcessListNode *processList, char* timer,
+    char* filePrint, ConfigInfo configData, QueueNode *processQueue)
 {
     char* monitorPrint = malloc(100 * sizeof(char));
     QueueNode *interuptQueue = NULL;
@@ -407,12 +407,12 @@ void PreemptiveScheduling(ProcessListNode *processList,
     ProcessListNode *tempProcList = processList;
     PCB *selectedProcess;
 
-    processQueue = GetNextQueue(processQueue);
-
     selectedProcess = processQueue->process;
+    processQueue = Dequeue(processQueue);
 
     while(!finished)
     {
+
         //handle if no processes are ready
         if(selectedProcess == NULL)
         {
@@ -426,8 +426,8 @@ void PreemptiveScheduling(ProcessListNode *processList,
 
             while(idle){
                 HandleInterupt(processQueue, interuptQueue);
-                processQueue = GetNextQueue(processQueue);
                 selectedProcess = processQueue->process;
+                processQueue = GetNextQueue(processQueue);
                 if(selectedProcess != NULL)
                 {
                     idle = FALSE;
@@ -493,11 +493,10 @@ void PreemptiveScheduling(ProcessListNode *processList,
 
         HandleInterupt(processQueue, interuptQueue);
 
-        processQueue = GetNextQueue(processQueue);
-
         if(processQueue != NULL)
         {
             selectedProcess = processQueue->process;
+            processQueue = GetNextQueue(processQueue);
             accessTimer(GET_TIME_DIFF, timer);
             snprintf(monitorPrint, 100,
                 "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
@@ -529,7 +528,7 @@ void HandleInterupt(QueueNode *processQueue, QueueNode *interuptQueue)
 {
     while(interuptQueue != NULL)
     {
-        EnqueueFCFS(processQueue, interuptQueue->process);
+        processQueue = EnqueueFCFS(processQueue, interuptQueue->process);
 
         interuptQueue = interuptQueue->next;
     }
