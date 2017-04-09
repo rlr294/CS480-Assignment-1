@@ -129,6 +129,48 @@ void CreateProcesses(ProcessListNode *list, MetaDataNode *node,
     }
 }
 
+QueueNode* EnqueueFCFS(QueueNode *head, PCB* process)
+{
+    QueueNode* originHead = head;
+    QueueNode* temp = malloc(sizeof(QueueNode));
+    temp->process = process;
+    temp->next = NULL;
+    int nextProcNum = 0;
+
+    if(head == NULL)
+    {
+        head = malloc(sizeof(QueueNode));
+        head = temp;
+        return head;
+    }
+
+    if(head->next != NULL)
+    {
+        if(head->next->process != NULL)
+        {
+            nextProcNum = head->next->process->procNum;
+        }
+    }
+
+    while(head->next != NULL && nextProcNum < process->procNum)
+    {
+            head = head->next;
+    }
+
+    head->next = temp;
+    return originHead;
+}
+
+QueueNode* Dequeue(QueueNode *head)
+{
+    if(head == NULL)
+    {
+        return NULL;
+    }
+
+    return head;
+}
+
 /*
 * @brief function for pthreads to run that handles the cycle time for
 *        I/O operations
@@ -140,13 +182,31 @@ void CreateProcesses(ProcessListNode *list, MetaDataNode *node,
 *
 * @note: None
 */
-void ioThreadFunction(void *ptr)
+void NonPreemptiveIO(void *ptr)
 {
     IOdata *data;
     data = (IOdata *) ptr;
     delay(data->delay);
 
     pthread_exit(0);
+}
+
+void PreemptiveIO(void *ptr)
+{
+    char* monitorPrint = malloc(100 * sizeof(char));
+    IOdata *data;
+    data = (IOdata *) ptr;
+
+    delay(data->delay);
+    //print end
+    accessTimer(GET_TIME_DIFF, data->timer);
+    snprintf(monitorPrint, 100,
+        "Time: %9s, Process %d, %s end\n",
+        data->timer, data->process->procNum, NodeToString(data->process->currentNode));
+    PrintIfLogToMonitor(monitorPrint, data->configData);
+    strcat(data->filePrint, monitorPrint);
+
+    //print and set new state
 }
 
 /*
@@ -190,7 +250,7 @@ int Run(PCB *process, ConfigInfo *configData, char* timer, char* filePrint)
         {
             data1.delay = calcCycleTime(process->currentNode, configData);
             pthread_create(&thread1, NULL,
-                    (void *) &ioThreadFunction, (void *) &data1);
+                    (void *) &NonPreemptiveIO, (void *) &data1);
 
             pthread_join(thread1, NULL);
         }
@@ -213,9 +273,70 @@ int Run(PCB *process, ConfigInfo *configData, char* timer, char* filePrint)
     return 0;
 }
 
-int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer, char* filePrint, QueueNode* ioOperations)
+int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer, char* filePrint, QueueNode* interuptQueue, QueueNode* processQueue)
 {
-    //char* monitorPrint = malloc(100 * sizeof(char));
+    char* monitorPrint = malloc(100 * sizeof(char));
+    pthread_t thread1;
+    IOdata data1;
+
+    if(process->currentNode->cycleTime != 0)
+    {
+        //prints the start time
+        accessTimer(GET_TIME_DIFF, timer);
+        snprintf(monitorPrint, 100,
+            "Time: %9s, Process %d, %s start\n",
+            timer, process->procNum, NodeToString(process->currentNode));
+        PrintIfLogToMonitor(monitorPrint, configData);
+        strcat(filePrint, monitorPrint);
+
+        //For I/O operations use a POSIX thread to manage cycle times
+        if(process->currentNode->command == 'I'
+            || process->currentNode->command == 'O')
+        {
+            data1.delay = calcCycleTime(process->currentNode, configData);
+            data1.timer = timer;
+            data1.filePrint = filePrint;
+            data1.configData = configData;
+            data1.process = process;
+            pthread_create(&thread1, NULL,
+                    (void *) &PreemptiveIO, (void *) &data1);
+
+            return PROC_BLOCK;
+        }
+        else if (process->currentNode->command == 'M') {
+            accessTimer(GET_TIME_DIFF, timer);
+            snprintf(monitorPrint, 100,
+                "Time: %9s, Process %d, %s end\n",
+                timer, process->procNum, NodeToString(process->currentNode));
+            PrintIfLogToMonitor(monitorPrint, configData);
+            strcat(filePrint, monitorPrint);
+        }
+        else
+        {
+            while(interuptQueue == NULL && process->currentNode->cycleTime > 0)
+            {
+                delay(configData->pCycleTime);
+                process->currentNode->cycleTime = process->currentNode->cycleTime - 1;
+
+                printf("%d\n", process->currentNode->cycleTime);
+            }
+
+            if(process->currentNode->cycleTime == 0)
+            {
+                //prints the end time
+                accessTimer(GET_TIME_DIFF, timer);
+                snprintf(monitorPrint, 100,
+                    "Time: %9s, Process %d, %s end\n",
+                    timer, process->procNum, NodeToString(process->currentNode));
+                PrintIfLogToMonitor(monitorPrint, configData);
+                strcat(filePrint, monitorPrint);
+
+
+            }
+        }
+    }
+    process->currentNode = process->currentNode->nextNode;
+    EnqueueFCFS(processQueue, process);
     return PROC_READY;
 }
 

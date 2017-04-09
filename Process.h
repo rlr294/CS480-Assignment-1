@@ -15,7 +15,6 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include "Queue.h"
 #include "Structures.h"
 #include "SimpleTimer.h"
 #include "Sim04.h"
@@ -42,15 +41,27 @@ typedef struct ProcessListNode
 typedef struct IOdata
 {
     int delay;
+    char* timer;
+    PCB *process;
+    ConfigInfo *configData;
 } IOdata;
+
+typedef struct QueueNode {
+	PCB *process;
+	struct QueueNode* next;
+} QueueNode;
 
 void shortestJobFirstSort(ProcessListNode *start);
 void CreateProcesses(ProcessListNode*, MetaDataNode*, ConfigInfo*);
 int Run(PCB*, ConfigInfo*, char*, char*);
-int PreemptiveRun(PCB*, ConfigInfo*, char*, char*, QueueNode*);
+int PreemptiveRun(PCB*, ConfigInfo*, char*, char*, QueueNode*, QueueNode*);
 void SetReady(PCB*);
 void SetRunning(PCB*);
 void SetBlocked(PCB*);
 void SetExit(PCB*);
+
+QueueNode* EnqueueFCFS(QueueNode *head, PCB *process);
+
+QueueNode* Dequeue(QueueNode *head);
 
 #endif //STRUCTURES_H

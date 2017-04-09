@@ -46,11 +46,13 @@
 #include "Sim04.h"
 
 Boolean ErrorCheck(int errorNum);
-PCB* GetNextProcess(ProcessListNode*, ConfigInfo*);
-void NonPreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
-    char* timer, char* filePrint, ConfigInfo configData);
-void PreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
-    char* timer, char* filePrint, ConfigInfo configData);
+PCB* GetNextProcess(ProcessListNode*, ConfigInfo*, QueueNode*);
+QueueNode* GetNextQueue(QueueNode*);
+void NonPreemptiveScheduling(ProcessListNode *processList,
+    char* timer, char* filePrint, ConfigInfo configData, QueueNode *processQueue);
+void PreemptiveScheduling(ProcessListNode *processList,
+    char* timer, char* filePrint, ConfigInfo configData, QueueNode *processQueue);
+void HandleInterupt(QueueNode *processQueue, QueueNode *interuptQueue);
 
 // Main Function Implementation ///////////////////////////////////
 int main(int argc, char const *argv[])
@@ -65,7 +67,7 @@ int main(int argc, char const *argv[])
     char* monitorPrint = malloc(100 * sizeof(char));
     char* filePrint = malloc(10000 * sizeof(char));
     FILE *filePointer;
-    PCB *selectedProcess = malloc(sizeof(PCB));
+    QueueNode *processQueue = NULL;
 
     //ensures the proper command line arguements were given
     if(argc != 2)
@@ -130,11 +132,13 @@ int main(int argc, char const *argv[])
     PrintIfLogToMonitor(monitorPrint, &configData);
     strcat(filePrint, monitorPrint);
 
-    //loop through the processes, setting each of them to ready
+    //loop through the processes, setting each of them to ready and setting
+    //their position in queue
     processHead = processList;
     while(processList != NULL)
     {
         SetReady(processList->process);
+        processQueue = EnqueueFCFS(processQueue, processList->process);
         processList = processList->nextProcess;
     }
     //point the list back to the start instead of the end
@@ -145,26 +149,16 @@ int main(int argc, char const *argv[])
     PrintIfLogToMonitor(monitorPrint, &configData);
     strcat(filePrint, monitorPrint);
 
-    //Select the first process to run
-    selectedProcess = GetNextProcess(processList, &configData);
-    accessTimer(GET_TIME_DIFF, timer);
-    snprintf(monitorPrint, 100,
-        "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
-        timer, convertSchedulingCode(configData.cpuSchedulingCode),
-        selectedProcess->procNum, selectedProcess->cycleTime);
-    PrintIfLogToMonitor(monitorPrint, &configData);
-    strcat(filePrint, monitorPrint);
-
     if(configData.cpuSchedulingCode == FCFSN
         || configData.cpuSchedulingCode == SJFN)
     {
-        NonPreemptiveScheduling(processList, selectedProcess, timer,
-            filePrint, configData);
+        NonPreemptiveScheduling(processList, timer,
+            filePrint, configData, processQueue);
     }
     else
     {
-        PreemptiveScheduling(processList, selectedProcess, timer,
-            filePrint, configData);
+        PreemptiveScheduling(processList, timer,
+            filePrint, configData, processQueue);
     }
 
     accessTimer(GET_TIME_DIFF, timer);
@@ -277,7 +271,7 @@ void PrintIfLogToMonitor(char* string, ConfigInfo *configData)
 *
 * @note: None
 */
-PCB* GetNextProcess(ProcessListNode *processList, ConfigInfo *configData)
+PCB* GetNextProcess(ProcessListNode *processList, ConfigInfo *configData, QueueNode *queue)
 {
     ProcessListNode *tempList = processList;
     PCB *tempProcess = malloc(sizeof(PCB));
@@ -339,10 +333,27 @@ PCB* GetNextProcess(ProcessListNode *processList, ConfigInfo *configData)
     return NULL;
 }
 
-void NonPreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
-     char* timer, char* filePrint, ConfigInfo configData)
+QueueNode* GetNextQueue(QueueNode *queue)
+{
+    queue = Dequeue(queue);
+    return queue;
+}
+
+void NonPreemptiveScheduling(ProcessListNode *processList,
+     char* timer, char* filePrint, ConfigInfo configData, QueueNode *processQueue)
 {
     char* monitorPrint = malloc(100 * sizeof(char));
+    PCB *selectedProcess;
+    //Select the first process to run
+    selectedProcess = GetNextProcess(processList, &configData, processQueue);
+    accessTimer(GET_TIME_DIFF, timer);
+    snprintf(monitorPrint, 100,
+        "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
+        timer, convertSchedulingCode(configData.cpuSchedulingCode),
+        selectedProcess->procNum, selectedProcess->cycleTime);
+    PrintIfLogToMonitor(monitorPrint, &configData);
+    strcat(filePrint, monitorPrint);
+
     // for each process:
     while(selectedProcess != NULL)
     {
@@ -371,7 +382,7 @@ void NonPreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
         strcat(filePrint, monitorPrint);
 
         //Select the next process to run
-        selectedProcess = GetNextProcess(processList, &configData);
+        selectedProcess = GetNextProcess(processList, &configData, processQueue);
         if(selectedProcess != NULL)
         {
             accessTimer(GET_TIME_DIFF, timer);
@@ -385,15 +396,20 @@ void NonPreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
     }
 }
 
-void PreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
-    char* timer, char* filePrint, ConfigInfo configData)
+void PreemptiveScheduling(ProcessListNode *processList,
+    char* timer, char* filePrint, ConfigInfo configData, QueueNode *processQueue)
 {
     char* monitorPrint = malloc(100 * sizeof(char));
-    QueueNode *ioOperations = malloc(sizeof(QueueNode));
+    QueueNode *interuptQueue = NULL;
     Boolean finished = FALSE;
     Boolean idle = FALSE;
     int procState = PROC_READY;
     ProcessListNode *tempProcList = processList;
+    PCB *selectedProcess;
+
+    processQueue = GetNextQueue(processQueue);
+
+    selectedProcess = processQueue->process;
 
     while(!finished)
     {
@@ -409,7 +425,9 @@ void PreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
             strcat(filePrint, monitorPrint);
 
             while(idle){
-                selectedProcess = GetNextProcess(processList, &configData);
+                HandleInterupt(processQueue, interuptQueue);
+                processQueue = GetNextQueue(processQueue);
+                selectedProcess = processQueue->process;
                 if(selectedProcess != NULL)
                 {
                     idle = FALSE;
@@ -440,9 +458,7 @@ void PreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
         PrintIfLogToMonitor(monitorPrint, &configData);
         strcat(filePrint, monitorPrint);
 
-        procState = PreemptiveRun(selectedProcess, &configData, timer, filePrint, ioOperations);
-
-        //////////////////ADD HANDLING OF IO QUEUE HERE////////////////////
+        procState = PreemptiveRun(selectedProcess, &configData, timer, filePrint, interuptQueue, processQueue);
 
         if(procState == PROC_BLOCK)
         {
@@ -475,9 +491,13 @@ void PreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
             strcat(filePrint, monitorPrint);
         }
 
-        selectedProcess = GetNextProcess(processList, &configData);
-        if(selectedProcess != NULL)
+        HandleInterupt(processQueue, interuptQueue);
+
+        processQueue = GetNextQueue(processQueue);
+
+        if(processQueue != NULL)
         {
+            selectedProcess = processQueue->process;
             accessTimer(GET_TIME_DIFF, timer);
             snprintf(monitorPrint, 100,
                 "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
@@ -491,7 +511,7 @@ void PreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
             finished = TRUE;
 
             //Loops through all the processes
-            while(tempProcList->process != NULL)
+            while(tempProcList != NULL && tempProcList->process != NULL)
             {
                 //If any are not in exit state, set finished to false
                 if(tempProcList->process->state != Exit)
@@ -500,6 +520,17 @@ void PreemptiveScheduling(ProcessListNode *processList, PCB *selectedProcess,
                 }
                 tempProcList = tempProcList->nextProcess;
             }
+            tempProcList = processList;
         }
+    }
+}
+
+void HandleInterupt(QueueNode *processQueue, QueueNode *interuptQueue)
+{
+    while(interuptQueue != NULL)
+    {
+        EnqueueFCFS(processQueue, interuptQueue->process);
+
+        interuptQueue = interuptQueue->next;
     }
 }

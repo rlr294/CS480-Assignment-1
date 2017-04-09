@@ -348,7 +348,7 @@ static int CheckConfigData(ConfigInfo *configData)
 */
 int ReadConfig(char* configFileName, ConfigInfo *configData)
 {
-    char schedulingCode[6];
+    char schedulingCode[7];
     char logTo[7];
     FILE *configFile;
     char line[256];
