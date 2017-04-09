@@ -271,7 +271,8 @@ void PrintIfLogToMonitor(char* string, ConfigInfo *configData)
 *
 * @note: None
 */
-PCB* GetNextProcess(ProcessListNode *processList, ConfigInfo *configData, QueueNode *queue)
+PCB* GetNextProcess(ProcessListNode *processList,
+    ConfigInfo *configData, QueueNode *queue)
 {
     ProcessListNode *tempList = processList;
     PCB *tempProcess = malloc(sizeof(PCB));
@@ -426,11 +427,15 @@ void PreemptiveScheduling(ProcessListNode *processList, char* timer,
 
             while(idle){
                 HandleInterupt(processQueue, interuptQueue);
-                selectedProcess = processQueue->process;
-                processQueue = GetNextQueue(processQueue);
-                if(selectedProcess != NULL)
+                if(processQueue != NULL)
                 {
-                    idle = FALSE;
+                    selectedProcess = processQueue->process;
+                    if(selectedProcess != NULL)
+                    {
+
+                        processQueue = GetNextQueue(processQueue);
+                        idle = FALSE;
+                    }
                 }
             }
 
@@ -458,7 +463,8 @@ void PreemptiveScheduling(ProcessListNode *processList, char* timer,
         PrintIfLogToMonitor(monitorPrint, &configData);
         strcat(filePrint, monitorPrint);
 
-        procState = PreemptiveRun(selectedProcess, &configData, timer, filePrint, interuptQueue, processQueue);
+        procState = PreemptiveRun(selectedProcess, &configData, timer,
+            filePrint, interuptQueue, processQueue);
 
         if(procState == PROC_BLOCK)
         {
@@ -499,8 +505,9 @@ void PreemptiveScheduling(ProcessListNode *processList, char* timer,
             processQueue = GetNextQueue(processQueue);
             accessTimer(GET_TIME_DIFF, timer);
             snprintf(monitorPrint, 100,
-                "Time: %9s, OS: %s Strategy selects Process %d with time: %d mSec \n",
-                timer, convertSchedulingCode(configData.cpuSchedulingCode),
+                "Time: %9s, OS: %s Strategy selects Process %d with time:"
+                " %d mSec \n", timer, 
+                convertSchedulingCode(configData.cpuSchedulingCode),
                 selectedProcess->procNum, selectedProcess->cycleTime);
             PrintIfLogToMonitor(monitorPrint, &configData);
             strcat(filePrint, monitorPrint);
@@ -516,6 +523,7 @@ void PreemptiveScheduling(ProcessListNode *processList, char* timer,
                 if(tempProcList->process->state != Exit)
                 {
                     finished = FALSE;
+                    selectedProcess = NULL;
                 }
                 tempProcList = tempProcList->nextProcess;
             }

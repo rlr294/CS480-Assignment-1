@@ -199,28 +199,21 @@ void NonPreemptiveIO(void *ptr)
     data = (IOdata *) ptr;
     delay(data->delay);
 
-    printf("Hello?");
     pthread_exit(0);
 }
 
 void PreemptiveIO(void *ptr)
 {
-    // char* monitorPrint = malloc(100 * sizeof(char));
+
     IOdata *data;
     data = (IOdata *) ptr;
-
-    delay(data->delay);
+    delay(data->delay);  //my threads always get stuck here, dont know how to fix
     //print end
     accessTimer(GET_TIME_DIFF, data->timer);
     printf("Time: %9s, Process %d, %s end\n", data->timer,
          data->process->procNum, NodeToString(data->process->currentNode));
 
     EnqueueFCFS(data->processQueue, data->process);
-    // snprintf(monitorPrint, 100,
-    //     "Time: %9s, Process %d, %s end\n",
-    //     data->timer, data->process->procNum, NodeToString(data->process->currentNode));
-    // PrintIfLogToMonitor(monitorPrint, data->configData);
-    //strcat(data->filePrint, monitorPrint);
 
     //print and set new state
 }
@@ -296,7 +289,9 @@ int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer,
     pthread_t thread1;
     IOdata data1;
 
-    if(process->currentNode->cycleTime == 0)
+    //handle starts
+    if(process->currentNode->cycleTime == 0 &&
+        process->currentNode->nextNode != NULL)
     {
         process->currentNode = process->currentNode->nextNode;
     }
@@ -325,6 +320,7 @@ int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer,
             process->currentNode = process->currentNode->nextNode;
             return PROC_BLOCK;
         }
+        //no delay on memory
         else if (process->currentNode->command == 'M') {
             accessTimer(GET_TIME_DIFF, timer);
             snprintf(monitorPrint, 100,
@@ -338,7 +334,8 @@ int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer,
             while(interuptQueue == NULL && process->currentNode->cycleTime > 0)
             {
                 delay(configData->pCycleTime);
-                process->currentNode->cycleTime = process->currentNode->cycleTime - 1;
+                process->currentNode->cycleTime =
+                        process->currentNode->cycleTime - 1;
             }
 
             if(process->currentNode->cycleTime == 0)
@@ -346,18 +343,23 @@ int PreemptiveRun(PCB *process, ConfigInfo *configData, char* timer,
                 //prints the end time
                 accessTimer(GET_TIME_DIFF, timer);
                 snprintf(monitorPrint, 100,
-                    "Time: %9s, Process %d, %s end\n",
-                    timer, process->procNum, NodeToString(process->currentNode));
+                    "Time: %9s, Process %d, %s end\n", timer,
+                    process->procNum, NodeToString(process->currentNode));
                 PrintIfLogToMonitor(monitorPrint, configData);
                 strcat(filePrint, monitorPrint);
-
-
             }
         }
     }
+    if(process->currentNode->nextNode == NULL)
+    {
+        return PROC_EXIT;
+    }
+    else
+    {
     process->currentNode = process->currentNode->nextNode;
     EnqueueFCFS(processQueue, process);
     return PROC_READY;
+    }
 }
 
 /*
